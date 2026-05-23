@@ -4,9 +4,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 # Importação do objeto de configuração do banco
-from lertarot.core import settings
+from lertarot.core import database_settings
 
-URL_DATABASE = settings.url_database
+URL_DATABASE = database_settings.url_database
 
 engine = create_engine(URL_DATABASE)
 
@@ -26,7 +26,7 @@ def get_session():
         
 # Teste de importação da url do banco        
 def criar_sessao():
-    return settings.url_database
+    return database_settings.url_database
 
 
 if __name__ == "__main__":

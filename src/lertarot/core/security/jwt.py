@@ -1,12 +1,12 @@
 from jose import jwt, JWTError, ExpiredSignatureError
 
 from datetime import datetime, timedelta, timezone
-from core.config_sc import SC_settings
+from lertarot.core import security_settings
 
 # Segurança e autentificação services
-SECRET_KEY = SC_settings.config_security["Secret Key"]
-ALGORITHM = SC_settings.config_security["Algorithm"]
-ACCESS_TOKEN_EXPIRE_MINUTES = SC_settings.config_security["Token Minutes"]
+SECRET_KEY = security_settings.secret_key
+ALGORITHM = security_settings.algorithm
+ACCESS_TOKEN_EXPIRE_MINUTES = security_settings.access_token_expire_minutes
 
 
 class TokenInvalido(Exception):

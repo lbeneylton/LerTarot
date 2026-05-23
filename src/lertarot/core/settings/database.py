@@ -29,7 +29,7 @@ class Settings:
         )
 
 
-settings = Settings()
+database_settings = Settings()
 
 if __name__ == "__main__":
     print(settings.url_database)
