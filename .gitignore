@@ -1,0 +1,21 @@
+# ambiente virtual
+.venv/
+
+# arquivos de ambiente
+.env
+
+# cache do Python
+__pycache__/
+*.pyc
+*.pyo
+
+# git
+.git/
+
+# logs
+*.log
+
+# banco
+*.db
+
+logs/
