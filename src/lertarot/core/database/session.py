@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 # Importação do objeto de configuração do banco
-from lertarot.core.settings import settings
+from lertarot.core import settings
 
 URL_DATABASE = settings.url_database
 
