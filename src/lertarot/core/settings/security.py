@@ -18,18 +18,14 @@ class Settings:
     @property
     def secret_key(self) -> str:
         return self.SECRET_KEY
-    
+
     @property
     def algorithm(self) -> str:
         return self.ALGORITHM
-    
+
     @property
     def access_token_expire_minutes(self) -> int:
         return self.ACCESS_TOKEN_EXPIRE_MINUTES
-            
 
 
 security_settings = Settings()
-
-if __name__ == "__main__":
-    print(security_settings.secret_key, security_settings.algorithm, security_settings.access_token_expire_minutes)
