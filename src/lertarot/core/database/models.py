@@ -62,6 +62,7 @@ class Users(Base):
     nome = mapped_column(String(50), nullable=False)
     email = mapped_column(String(100), nullable=False)
     senha_hash = mapped_column(String(255), nullable=False)
+    type = mapped_column(String(10), nullable=False)
     deleted_at = mapped_column(DateTime(True))
 
 
