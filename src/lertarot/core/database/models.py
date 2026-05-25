@@ -1,3 +1,5 @@
+from uuid import uuid7
+
 from .base import Base
 from typing import List
 
@@ -27,7 +29,7 @@ class AppointmentStatus(Base):
             'name_status', name='appointment_status_name_status_key')
     )
 
-    status_id = mapped_column(Uuid)
+    status_id = mapped_column(Uuid, default=uuid7)
     name_status = mapped_column(String(50), nullable=False)
 
     appointments: Mapped[List['Appointments']] = relationship(
@@ -41,7 +43,7 @@ class Specialties(Base):
         UniqueConstraint('nome', name='specialties_nome_key')
     )
 
-    speciality_id = mapped_column(Uuid)
+    speciality_id = mapped_column(Uuid, default=uuid7)
     nome = mapped_column(String(50))
 
     fk_reader: Mapped['Readers'] = relationship(
@@ -56,7 +58,7 @@ class Users(Base):
         Index('idx_users_email_active', 'email', unique=True)
     )
 
-    user_id = mapped_column(Uuid)
+    user_id = mapped_column(Uuid, default=uuid7)
     nome = mapped_column(String(50), nullable=False)
     email = mapped_column(String(100), nullable=False)
     senha_hash = mapped_column(String(255), nullable=False)
@@ -111,7 +113,7 @@ class Appointments(Base):
         Index('idx_appointments_reader', 'fk_reader_id')
     )
 
-    appointment_id = mapped_column(Uuid)
+    appointment_id = mapped_column(Uuid, default=uuid7)
     start_datetime = mapped_column(DateTime(True), nullable=False)
     fk_status_id = mapped_column(Uuid, nullable=False)
     fk_reader_id = mapped_column(Uuid, nullable=False)
@@ -153,7 +155,7 @@ class Services(Base):
         Index('idx_services_reader', 'fk_reader_id')
     )
 
-    service_id = mapped_column(Uuid)
+    service_id = mapped_column(Uuid, default=uuid7)
     fk_reader_id = mapped_column(Uuid, nullable=False)
     titulo = mapped_column(String(100), nullable=False)
     descricao = mapped_column(String(255), nullable=False)
