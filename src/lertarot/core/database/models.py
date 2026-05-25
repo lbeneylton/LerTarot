@@ -1,4 +1,4 @@
-from lertarot.core import Base
+from .base import Base
 from typing import List
 
 from sqlalchemy import (
