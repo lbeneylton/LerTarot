@@ -1,16 +1,20 @@
-from ..src.lertarot.core import Base  # Importação da classe Base de metadados
-
-# garante carregamento de todos os models
-
-# Importação das configurações do banco
-from ..src.lertarot.core import database_settings
-
 from logging.config import fileConfig
-
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-
 from alembic import context
+
+# garante carregamento dos models
+from src.lertarot.core.database import models
+
+# Importação das configurações do banco
+from src.lertarot.core.database.session import database_settings
+from src.lertarot.core.database.base import Base
+
+# adiciona a pasta raiz do projeto ao PYTHONPATH
+import os
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

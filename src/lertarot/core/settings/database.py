@@ -11,16 +11,17 @@ load_dotenv()
 
 class Settings:
     def __init__(self):
-        self.host = os.getenv("DB_HOaST", None)
+        self.host = os.getenv("DB_HOST")
         self.name = os.getenv("DB_NAME")
         self.user = os.getenv("DB_USER")
         self.password = os.getenv("DB_PASSWORD")
         self.port = os.getenv("DB_PORT")
+        self.db_test = os.getenv("DATABASE_TESTE_URL")
 
     @property
     def url_database(self):
         if not self.host:
-            return "sqlite:///test.db"
+            return f"sqlite:///{self.db_test}"
 
         return (
             f"postgresql+psycopg://"

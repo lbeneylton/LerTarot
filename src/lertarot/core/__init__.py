@@ -18,3 +18,6 @@ from .exception import DomainError
 
 # Classe para metadados dos models
 from .database.base import Base
+
+# Classes models importadas
+from .database.models import *
