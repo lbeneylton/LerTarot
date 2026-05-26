@@ -17,5 +17,11 @@ __pycache__/
 
 # banco
 *.db
+pgsql/
+postgres/
+senha.txt
+
 
 logs/
+
+
