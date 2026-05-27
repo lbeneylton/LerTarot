@@ -1,27 +1,48 @@
-[tool.poetry]
+[project]
 name = "lertarot"
 version = "0.1.0"
 description = ""
-authors = ["Lucas Beneylton 47756391+lbeneylton@users.noreply.github.com"]
-packages = [
-    { include = "lertarot", from = "src" }
-]
 readme = "README.md"
+authors = [
+    {name = "Lucas Beneylton",email = "47756391+lbeneylton@users.noreply.github.com"}
+]
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi (>=0.136.3,<0.137.0)",
+    "uvicorn (>=0.48.0,<0.49.0)",
+    "python-dotenv (>=1.2.2,<2.0.0)",
+    "sqlalchemy (>=2.0.50,<3.0.0)",
+    "alembic (>=1.18.4,<2.0.0)",
+    "psycopg[binary] (>=3.3.4,<4.0.0)",
+    "pydantic[email] (>=2.13.4,<3.0.0)",
+    "pydantic-settings (>=2.14.1,<3.0.0)",
+    "email-validator (>=2.3.0,<3.0.0)",
+    "psycopg2 (>=2.9.12,<3.0.0)",
+    "python-jose[cryptography] (>=3.5.0,<4.0.0)",
+    "passlib (>=1.7.4,<2.0.0)",
+    "pyjwt (>=2.13.0,<3.0.0)",
+    "argon2-cffi (>=25.1.0,<26.0.0)",
+]
+
+
+
+[tool.poetry]
+packages = [
+    { include = "app", from = "src" }
+]
+
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.4.0"
+ruff = "^0.12.0"
+
+[tool.ruff]
+src = ["src"]
+line-length = 88
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 norecursedirs = [".venv", "pgsql", "site-packages", "alembic"]
-
-
-[tool.poetry.dependencies]
-python = "^3.10"
-alembic = "^1.18.4"
-pytest = "^9.0.3"
-python-dotenv = "^1.2.2"
-pyjwt = {extras = ["crypto"], version = "^2.13.0"}
-python-jose = {extras = ["cryptography"], version = "^3.5.0"}
-passlib = "^1.7.4"
-
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
