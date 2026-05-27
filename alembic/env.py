@@ -1,24 +1,26 @@
 from logging.config import fileConfig
+
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
+
 from alembic import context
 
-# garante carregamento dos models
-from src.lertarot.core.database import models
+# -- IMPORTAÇÕES DO APP --
+from src.app.core.database.session import settings
+from src.app.core.database.base import Base
 
-# Importação das configurações do banco
-from src.lertarot.core.database.session import database_settings
-from src.lertarot.core.database.base import Base
-
-# adiciona a pasta raiz do projeto ao PYTHONPATH
-import os
-import sys
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
+# Importação dos models para não gerar migration vazia
+import src.app.core.database.models
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+
+# --- CONFIGURAÇÃO DO SQLALCHEMY.URL para apontar para a url do database
+config.set_main_option(
+    "sqlalchemy.url",
+    settings.database_url.replace("%", "%%")
+)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -39,7 +41,7 @@ target_metadata = Base.metadata
 
 def run_migrations_offline() -> None:
     """Modo offline (gera SQL sem conectar no banco)."""
-    url = database_settings.url_database
+    url = config.get_main_option("sqlalchemy.url")
 
     context.configure(
         url=url,
@@ -55,9 +57,7 @@ def run_migrations_offline() -> None:
 def run_migrations_online() -> None:
     """Modo online (executa no banco real)."""
     connectable = engine_from_config(
-        {
-            "sqlalchemy.url": database_settings.url_database  # 👈 usa settings aqui
-        },
+        config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
