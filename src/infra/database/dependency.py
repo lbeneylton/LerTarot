@@ -1,8 +1,9 @@
 # Importação da Factory Session
-from src.app.core.database.session import SessionLocal
+from infra.database.session import SessionLocal
 
 
 def get_session():
+    """Função geradora de funções"""
     session = SessionLocal()
 
     try:
