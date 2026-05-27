@@ -4,9 +4,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 # Importação do objeto de configuração do banco
-from lertarot.core import database_settings
+from src.app.core.config import settings
 
-URL_DATABASE = database_settings.url_database
+URL_DATABASE = settings.url_database
 
 engine = create_engine(URL_DATABASE)
 
@@ -15,11 +15,3 @@ SessionLocal = sessionmaker(
     autoflush=False,
     bind=engine
 )
-
-
-def get_session():
-    session = SessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
