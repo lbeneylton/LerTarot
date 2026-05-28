@@ -6,8 +6,5 @@
     "python.useEnvironmentsExtension": true,
     "terminal.integrated.env.windows": {
         "PYTHONDONTWRITEBYTECODE": "1"
-    },
-    "env": {
-        "PYTHONDONTWRITEBYTECODE": "1"
     }
 }

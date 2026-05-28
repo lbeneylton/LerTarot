@@ -1,14 +1,17 @@
 from datetime import datetime
 from uuid import UUID, uuid7
+from enum import Enum
 
 from sqlalchemy import (
+    ForeignKey,
     String,
     Uuid,
     Index,
     DateTime,
-    func
+    func,
+    Enum as SAEnum
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from infra.database.base import Base
 from src.app.users.enums import UserType
@@ -22,16 +25,16 @@ class User(Base):
         user_id:
             Identificador único UUIDv7.
 
-        nome:
+        name:
             Nome completo do usuário.
 
         email:
             Email único utilizado para autenticação.
 
-        senha_hash:
+        password_hash:
             Hash da senha do usuário.
 
-        role:
+        user_type:
             Papel/permissão do usuário no sistema (padrão "client").
 
         created_at:
@@ -42,17 +45,13 @@ class User(Base):
     """
     __tablename__ = "users"
 
-    __table_args__ = (
-        Index("idx_users_email_active", "email", unique=True),
-    )
-
     user_id: Mapped[UUID] = mapped_column(
         Uuid,
         primary_key=True,
         default=uuid7,
     )
 
-    nome: Mapped[str] = mapped_column(
+    name: Mapped[str] = mapped_column(
         String(50),
         nullable=False,
     )
@@ -62,14 +61,14 @@ class User(Base):
         nullable=False,
     )
 
-    senha_hash: Mapped[str] = mapped_column(
+    password_hash: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
     )
 
-    type: Mapped[UserType] = mapped_column(
-        String(10),
-        default=UserType.client
+    user_type: Mapped[UserType] = mapped_column(
+        SAEnum(UserType, native_enum=False),
+        nullable=False,
     )
 
     created_at: Mapped[datetime] = mapped_column(
@@ -82,3 +81,55 @@ class User(Base):
         DateTime(timezone=True),
         nullable=True,
     )
+
+    __mapper_args__ = {
+        "polymorphic_on": user_type,
+        "polymorphic_identity": "user",
+    }
+
+
+# Índice único para email apenas de usuários ativos
+Index(
+    "idx_users_email_active",
+    User.email,
+    unique=True,
+    postgresql_where=User.deleted_at.is_(None)
+)
+
+
+class Client(User):
+    __tablename__ = 'clients'
+
+    user_id: Mapped[UUID] = mapped_column(
+        Uuid,
+        ForeignKey("users.user_id"),
+        primary_key=True
+    )
+
+    __mapper_args__ = {
+        "polymorphic_identity": "client",
+    }
+
+
+class Reader(User):
+    __tablename__ = 'readers'
+
+    user_id: Mapped[UUID] = mapped_column(
+        Uuid,
+        ForeignKey("users.user_id"),
+        primary_key=True
+    )
+
+    foto_url: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True
+    )
+
+    bio: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True
+    )
+
+    __mapper_args__ = {
+        "polymorphic_identity": "reader",
+    }

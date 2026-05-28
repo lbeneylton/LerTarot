@@ -1,45 +1,58 @@
-from src.app.users.models import User
-
-from datetime import datetime, UTC
+from datetime import datetime, timezone
+from uuid import UUID
 
 from sqlalchemy.orm import Session
-from sqlalchemy import select, Select
+from sqlalchemy import select
 
-# from src.app.core.logger import logging
-# logger = logging.getLogger(__name__)
+from src.app.users.models import User
+from typing import Sequence
 
 
 class UserRepository:
     def __init__(self, session: Session) -> None:
         self.session = session
 
-    def _active_only(self) -> Select:
+    # Query base apenas para usuários ativos
+    def _active_only(self):
         return select(User).where(User.deleted_at.is_(None))
 
+    # Criação de usuário polimórfico
     def create(self, user: User) -> User:
         self.session.add(user)
         return user
 
-    def get_active_by_id(self, user_id: int) -> User | None:
-        return self.session.execute(
+    # Buscar usuário ativo por UUID
+    def get_active_by_id(self, user_id: UUID) -> User | None:
+        result = self.session.execute(
             self._active_only().where(User.user_id == user_id)
         ).scalar_one_or_none()
+        return result
 
+    # Buscar usuário ativo por email
     def get_active_by_email(self, email: str) -> User | None:
-        return self.session.execute(
+        result = self.session.execute(
             self._active_only().where(User.email == email)
         ).scalar_one_or_none()
+        return result
 
-    def update(self, user: User):
-        self.session.add(user)
-        return user
+    # Atualização genérica (merge/add)
+    # def update(self, user: User) -> User:
+    #     self.session.add(user)
+    #     return user
 
-    def delete(self, user_id: int):  # sem commit
+    # Soft delete
+    def delete(self, user_id: UUID) -> User | None:
         user = self.get_active_by_id(user_id)
-
         if not user:
             return None
 
-        user.deleted_at = datetime.now(UTC)
+        user.deleted_at = datetime.now(timezone.utc)
         self.session.add(user)
         return user
+
+    # Buscar todos os usuários ativos
+    def list_active(self) -> Sequence[User]:
+        result = self.session.execute(
+            self._active_only()
+        ).scalars().all()
+        return result
