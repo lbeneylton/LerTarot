@@ -1,50 +1,27 @@
-from jose import jwt, JWTError, ExpiredSignatureError, JOSEError
+"""Módulo para criação e decodificação de tokens JWT."""
 
 from datetime import datetime, timedelta, timezone
-from src.app.core.config import settings
 
-# Segurança e autentificação services
+from jose import JOSEError, jwt
+
+from app.core.config import settings
+
 SECRET_KEY = settings.secret_key
 ALGORITHM = settings.algorithm
 
 
-# ---- Criação de Json Token Web a partir de um dict
-def create_access_token(data: dict, expire_minutes=30) -> str:
-    """Função que cria um token com um dicionario e um timedelta,
-    timedelta padrão de 30 minutos"""
+def create_access_token(data: dict, expire_minutes: int = 30) -> str:
+    """Cria um JWT com expiração padrão de 30 minutos."""
     payload = data.copy()
+    expire = datetime.now(timezone.utc) + timedelta(minutes=expire_minutes)
+    payload["exp"] = int(expire.timestamp())
 
-    # Cálculo do tempo de expirção do jwt
-    expire = (
-        datetime.now(timezone.utc) + timedelta(expire_minutes)
-    )
-
-    # Adicionado o tempo de expiração ao dict do jwt
-    # e retorno do jwt codificado
-    payload.update({
-        "exp": int(expire.timestamp())
-    })
-
-    header = {"alg": ALGORITHM}
-
-    return jwt.encode(
-        header,
-        payload,
-        SECRET_KEY
-    )
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 
 def decode_token(token: str) -> dict | None:
-    """Verifica e decodifica um JWT.
-    retorna None se der erro"""
-    try:  # Tenta fazer o decode e retornar o payload
-        payload = jwt.decode(
-            token,
-            SECRET_KEY,
-            algorithms=[ALGORITHM]
-        )
-
-        return payload
-
+    """Verifica e decodifica um JWT. Retorna None se inválido ou expirado."""
+    try:
+        return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     except JOSEError:
         return None

@@ -1,20 +1,19 @@
+"""Modelos de usuários."""
 from datetime import datetime
 from uuid import UUID, uuid7
-from enum import Enum
 
 from sqlalchemy import (
     ForeignKey,
+    Index,
     String,
     Uuid,
-    Index,
     DateTime,
     func,
-    Enum as SAEnum
+    Enum as SAEnum,
 )
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from infra.database.base import Base
-from src.app.users.enums import UserType
+from sqlalchemy.orm import Mapped, mapped_column
+from app.users.enums import UserType
+from app.db.base import Base
 
 
 class User(Base):
@@ -84,20 +83,12 @@ class User(Base):
 
     __mapper_args__ = {
         "polymorphic_on": user_type,
-        "polymorphic_identity": "user",
+        "polymorphic_identity": UserType.admin,
     }
 
 
-# Índice único para email apenas de usuários ativos
-Index(
-    "idx_users_email_active",
-    User.email,
-    unique=True,
-    postgresql_where=User.deleted_at.is_(None)
-)
-
-
 class Client(User):
+    """Representa um cliente da aplicação."""
     __tablename__ = 'clients'
 
     user_id: Mapped[UUID] = mapped_column(
@@ -107,11 +98,12 @@ class Client(User):
     )
 
     __mapper_args__ = {
-        "polymorphic_identity": "client",
+        "polymorphic_identity": UserType.client,
     }
 
 
 class Reader(User):
+    """Representa um leitor da aplicação."""
     __tablename__ = 'readers'
 
     user_id: Mapped[UUID] = mapped_column(
@@ -131,5 +123,13 @@ class Reader(User):
     )
 
     __mapper_args__ = {
-        "polymorphic_identity": "reader",
+        "polymorphic_identity": UserType.reader,
     }
+
+
+Index(
+    "idx_users_email_active",
+    User.email,
+    unique=True,
+    postgresql_where=User.deleted_at.is_(None),
+)

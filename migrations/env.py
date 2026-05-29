@@ -6,12 +6,11 @@ from sqlalchemy import pool
 from alembic import context
 
 # -- IMPORTAÇÕES DO APP --
-from infra.database.session import settings
-from infra.database.base import Base
+from app.core.config import settings
+from app.db.base import Base
 
 # Importação dos models para não gerar migration vazia
-import infra.database.models
-
+import app.db.registry
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config

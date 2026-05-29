@@ -4,7 +4,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 
-from src.app.users.models import User
+from app.users.models import User
 from typing import Sequence
 
 

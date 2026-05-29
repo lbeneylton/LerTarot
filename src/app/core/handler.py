@@ -5,7 +5,7 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 
 # Importação da Exceção Base
-from src.app.core.exceptions import AppException
+from app.core.exceptions import AppException
 
 # Criando logger com o nome do arquivo
 logger = logging.getLogger(__name__)

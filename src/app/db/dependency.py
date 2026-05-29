@@ -1,5 +1,5 @@
 # Importação da Factory Session
-from infra.database.session import SessionLocal
+from app.db.session import SessionLocal
 
 
 def get_session():
