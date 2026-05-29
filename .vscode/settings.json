@@ -1,11 +1,11 @@
-// Para evitar: Import could not be resolved do Pylance
 {
-	"python-envs.defaultEnvManager": "ms-python.python:venv",
-	"python-envs.defaultPackageManager": "ms-python.python:pip",
 	"python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
-	"python.useEnvironmentsExtension": true,
+	"python.analysis.extraPaths": [
+		"${workspaceFolder}/src"
+	],
 	"terminal.integrated.env.windows": {
 		"PYTHONDONTWRITEBYTECODE": "1"
 	},
-	"python-envs.pythonProjects": []
+	"python-envs.defaultEnvManager": "ms-python.python:poetry",
+	"python-envs.defaultPackageManager": "ms-python.python:poetry"
 }

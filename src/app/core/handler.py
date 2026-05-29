@@ -12,13 +12,8 @@ logger = logging.getLogger(__name__)
 
 
 # Handler customizado para a exception AppException
-async def app_exception_handler(
-    request: Request,
-    exc: AppException
-):
-    logger.warning(
-        f"{exc.code} - {exc.message}"
-    )
+async def app_exception_handler(request: Request, exc: AppException):
+    logger.warning(f"{exc.code} - {exc.message}")
 
     return JSONResponse(
         status_code=exc.status_code,

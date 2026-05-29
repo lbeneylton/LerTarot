@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from uuid import UUID
 
 from sqlalchemy.orm import Session
 
@@ -8,7 +9,7 @@ from app.db import session as db_session
 from app.db.unit_of_work import UnitOfWork
 from app.users.enums import UserType
 from app.users.models import Client, Reader, User
-from app.users.repository import UserRepository
+from app.users.repositories import UserRepository
 from app.users.schemas import UserCreate
 
 
@@ -52,3 +53,11 @@ class UserService:
             uow.session.refresh(new_user)
             uow.session.expunge(new_user)
             return new_user
+
+    def get_user_by_id(self, user_id: UUID) -> User | None:
+        with UnitOfWork(self._session_factory) as uow:
+            assert uow.users is not None and uow.session is not None
+            user = uow.users.get_active_by_id(user_id)
+            if user:
+                uow.session.expunge(user)
+            return user

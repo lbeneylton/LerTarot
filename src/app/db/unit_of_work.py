@@ -4,7 +4,7 @@ from contextlib import AbstractContextManager
 from sqlalchemy.orm import Session
 
 from app.db import session as db_session
-from app.users.repository import UserRepository
+from app.users.repositories import UserRepository
 
 
 class UnitOfWork(AbstractContextManager["UnitOfWork"]):

@@ -127,9 +127,9 @@ class Reader(User):
     }
 
 
-Index(
-    "idx_users_email_active",
-    User.email,
-    unique=True,
-    postgresql_where=User.deleted_at.is_(None),
-)
+# Index(
+#     "idx_users_email_active",
+#     User.email,
+#     unique=True,
+#     postgresql_where=User.deleted_at.is_(None),
+# )
