@@ -22,7 +22,7 @@ class UserRepo:
         return user
 
     # Buscar usuário ativo por UUID
-    def get_active_by_id(self, user_id: UUID) -> User | None:
+    def get_active_by_id(self, user_id: int) -> User | None:
         result = self.session.execute(
             self._active_only().where(User.user_id == user_id)
         ).scalar_one_or_none()
@@ -48,7 +48,7 @@ class UserRepo:
     #     return user
 
     # Soft delete
-    def delete(self, user_id: UUID) -> User | None:
+    def delete(self, user_id: int) -> User | None:
         user = self.get_active_by_id(user_id)
         if not user:
             return None
