@@ -1,19 +1,35 @@
 """Modelos de usuários."""
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.providers.models import UserProvider
+
+
+from enum import Enum
 from datetime import datetime
-from uuid import UUID, uuid7
 
 from sqlalchemy import (
     ForeignKey,
     Index,
     String,
-    Uuid,
+    Integer,
     DateTime,
     func,
-    Enum as SAEnum,
+    Enum as SQLEnum,
+    Identity
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.users.enums import UserType
 from app.db.base import Base
+
+
+# -----------------------------------
+# ROLES
+# -----------------------------------
+class UserRole(str, Enum):
+    ADMIN = "ADMIN"
+    READER = "READER"
+    CLIENTE = "CLIENTE"
 
 
 class User(Base):
@@ -24,16 +40,16 @@ class User(Base):
         user_id:
             Identificador único UUIDv7.
 
-        name:
+        username:
             Nome completo do usuário.
 
         email:
             Email único utilizado para autenticação.
 
-        password_hash:
+        hash_password:
             Hash da senha do usuário.
 
-        user_type:
+        role:
             Papel/permissão do usuário no sistema (padrão "client").
 
         created_at:
@@ -44,13 +60,13 @@ class User(Base):
     """
     __tablename__ = "users"
 
-    user_id: Mapped[UUID] = mapped_column(
-        Uuid,
-        primary_key=True,
-        default=uuid7,
+    user_id: Mapped[int] = mapped_column(
+        Integer,
+        Identity(always=False),
+        primary_key=True
     )
 
-    name: Mapped[str] = mapped_column(
+    username: Mapped[str] = mapped_column(
         String(50),
         nullable=False,
     )
@@ -65,9 +81,18 @@ class User(Base):
         nullable=False,
     )
 
-    user_type: Mapped[UserType] = mapped_column(
-        SAEnum(UserType, native_enum=False),
+    role: Mapped[UserRole] = mapped_column(
+        SQLEnum(
+            UserRole,
+            name="user_role"
+        ),
+        default=UserRole.CLIENTE,
         nullable=False,
+    )
+
+    providers: Mapped[list["UserProvider"]] = relationship(
+        back_populates="user",
+        lazy="selectin"
     )
 
     created_at: Mapped[datetime] = mapped_column(
@@ -76,29 +101,47 @@ class User(Base):
         nullable=False,
     )
 
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True
+    )
+
     deleted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
     )
 
     __mapper_args__ = {
-        "polymorphic_on": user_type,
-        "polymorphic_identity": UserType.admin,
+        "polymorphic_on": role,
+        "polymorphic_identity": UserType.ADMIN,
     }
+
+    __table_args__ = (
+        Index(
+            "ix_users_email_active",
+            email,
+            postgresql_where=deleted_at.is_(None),
+        ),
+        Index(
+            "ix_users_username_active",
+            username,
+            postgresql_where=deleted_at.is_(None),
+        ),
+    )
 
 
 class Client(User):
     """Representa um cliente da aplicação."""
     __tablename__ = 'clients'
 
-    user_id: Mapped[UUID] = mapped_column(
-        Uuid,
+    user_id: Mapped[int] = mapped_column(
+        Integer,
         ForeignKey("users.user_id"),
         primary_key=True
     )
 
     __mapper_args__ = {
-        "polymorphic_identity": UserType.client,
+        "polymorphic_identity": UserType.CLIENTE,
     }
 
 
@@ -106,8 +149,8 @@ class Reader(User):
     """Representa um leitor da aplicação."""
     __tablename__ = 'readers'
 
-    user_id: Mapped[UUID] = mapped_column(
-        Uuid,
+    user_id: Mapped[int] = mapped_column(
+        Integer,
         ForeignKey("users.user_id"),
         primary_key=True
     )
@@ -123,13 +166,5 @@ class Reader(User):
     )
 
     __mapper_args__ = {
-        "polymorphic_identity": UserType.reader,
+        "polymorphic_identity": UserType.READER,
     }
-
-
-# Index(
-#     "idx_users_email_active",
-#     User.email,
-#     unique=True,
-#     postgresql_where=User.deleted_at.is_(None),
-# )

@@ -8,7 +8,7 @@ from app.users.models import User
 from typing import Sequence
 
 
-class UserRepository:
+class UserRepo:
     def __init__(self, session: Session) -> None:
         self.session = session
 
@@ -17,7 +17,7 @@ class UserRepository:
         return select(User).where(User.deleted_at.is_(None))
 
     # Criação de usuário polimórfico
-    def create(self, user: User) -> User:
+    def save(self, user: User) -> User:
         self.session.add(user)
         return user
 
@@ -32,6 +32,13 @@ class UserRepository:
     def get_active_by_email(self, email: str) -> User | None:
         result = self.session.execute(
             self._active_only().where(User.email == email)
+        ).scalar_one_or_none()
+        return result
+
+    # Buscar usuário ativo por username
+    def get_active_by_username(self, username: str) -> User | None:
+        result = self.session.execute(
+            self._active_only().where(User.username == username)
         ).scalar_one_or_none()
         return result
 

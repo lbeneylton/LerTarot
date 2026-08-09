@@ -6,15 +6,15 @@ class UserType(str, Enum):
     Perfis de acesso disponíveis no sistema.
 
     Attributes:
-        admin:
+        ADMIN:
             Acesso total ao sistema.
 
-        reader:
+        READER:
             Usuarios que podem cadastrar serviços, 
 
-        client:
+        CLIENTE:
             Usuário final da plataforma.
     """
-    admin = "admin"
-    reader = "reader"
-    client = "client"
+    ADMIN = "ADMIN"
+    READER = "READER"
+    CLIENTE = "CLIENTE"

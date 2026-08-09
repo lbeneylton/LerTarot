@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from app.auth.dependencies import get_current_user, RoleChecker
 from app.users.enums import UserType
 from app.users.models import User
-from app.core.security import jwt as jwt_module
+from app.security import jwt_provider as jwt_module
 
 
 @pytest.fixture(autouse=True)
@@ -46,7 +46,8 @@ def test_get_current_user_success(auth_client, user_payload):
     auth_client.post("/users", json=user_payload)
     login_res = auth_client.post(
         "/auth/login",
-        json={"email": user_payload["email"], "password": user_payload["password"]},
+        json={"email": user_payload["email"],
+              "password": user_payload["password"]},
     )
     token = login_res.json()["access_token"]
 
@@ -82,7 +83,8 @@ def test_role_checker_permitted(auth_client, user_payload):
     # Login
     login_res = auth_client.post(
         "/auth/login",
-        json={"email": user_payload["email"], "password": user_payload["password"]},
+        json={"email": user_payload["email"],
+              "password": user_payload["password"]},
     )
     token = login_res.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
@@ -102,7 +104,8 @@ def test_role_checker_forbidden(auth_client, user_payload):
     # Login
     login_res = auth_client.post(
         "/auth/login",
-        json={"email": user_payload["email"], "password": user_payload["password"]},
+        json={"email": user_payload["email"],
+              "password": user_payload["password"]},
     )
     token = login_res.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}

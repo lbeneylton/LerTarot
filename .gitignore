@@ -25,3 +25,8 @@ senha.txt
 logs/
 
 a.ccc
+
+
+.postgres_local/
+
+pg/

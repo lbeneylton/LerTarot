@@ -1,6 +1,6 @@
 import pytest
 
-from app.core.security import jwt as jwt_module
+from app.security import jwt_provider as jwt_module
 
 
 @pytest.fixture(autouse=True)
