@@ -18,7 +18,7 @@ from sqlalchemy import (
     Enum as SQLEnum,
     Identity
 )
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 from app.users.enums import UserType
 from app.db.base import Base
 
@@ -88,11 +88,6 @@ class User(Base):
         ),
         default=UserRole.CLIENTE,
         nullable=False,
-    )
-
-    providers: Mapped[list["UserProvider"]] = relationship(
-        back_populates="user",
-        lazy="selectin"
     )
 
     created_at: Mapped[datetime] = mapped_column(

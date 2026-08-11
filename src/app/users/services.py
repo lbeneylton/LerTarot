@@ -46,6 +46,8 @@ class UserService:
         )
 
         self.repo.save(user)
+        self.repo.session.commit()
+        self.repo.session.refresh(user)
 
         return user
 
@@ -241,7 +243,7 @@ class UserService:
 
         return user
 
-    def _generate_tokens(self, user: User) -> dict:
+    def generate_tokens(self, user: User) -> dict:
         """
         Gera access token e refresh token para o usuário.
         """

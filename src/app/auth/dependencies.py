@@ -3,7 +3,7 @@ from fastapi import Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from app.core.exceptions import UnauthorizedError, ForbiddenError
-from app.core.security.jwt import decode_token
+from app.security.jwt_provider import decode_token
 from app.users.enums import UserType
 from app.users.models import User
 from app.users.services import UserService

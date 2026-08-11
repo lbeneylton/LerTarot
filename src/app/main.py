@@ -1,21 +1,25 @@
 from fastapi import FastAPI
 
-from app.auth.router import router as auth_router
+# Exeções
 from app.core.exceptions import AppException
+
+# Handlers
 from app.core.handler import app_exception_handler
-from app.users.router import router as users_router
+
+# Rotas
+from api.auth import auther
+
 
 app = FastAPI(
-    title="LerTarot API",
+    title="Ler Tarot API",
     version="0.1.0",
-    description="API da plataforma LerTarot",
+    description="API da plataforma Ler_Tarot",
 )
 
 
 app.add_exception_handler(AppException, app_exception_handler)  # type: ignore
 
-app.include_router(auth_router, prefix="/auth", tags=["auth"])
-app.include_router(users_router, prefix="/users", tags=["users"])
+app.include_router(auther, tags=["Auth"])
 
 
 @app.get("/health", tags=["health"])
