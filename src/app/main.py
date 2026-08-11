@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 # Exeções
 from app.core.exceptions import AppException
@@ -14,6 +15,19 @@ app = FastAPI(
     title="Ler Tarot API",
     version="0.1.0",
     description="API da plataforma Ler_Tarot",
+)
+
+origins = [
+    "https://agendamento-frontend-alpha.vercel.app",
+    "http://localhost:3000"
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
