@@ -1,10 +1,12 @@
 # app/auth/cookies.py
 
-from fastapi import Response
+from fastapi import Response, Cookie
 
+from app.core.exceptions import UnauthorizedError
 
-ACCESS_COOKIE = "access_token"
-REFRESH_COOKIE = "refresh_token"
+from app.security.jwt_provider import JwtTokenService
+from app.users.services import UserService
+
 
 ACCESS_MAX_AGE = 15 * 60
 REFRESH_MAX_AGE = 7 * 24 * 60 * 60
@@ -22,7 +24,7 @@ def set_auth_cookies(
     refresh_token: str,
 ) -> None:
     response.set_cookie(
-        key=ACCESS_COOKIE,
+        key="access_token",
         value=access_token,
         httponly=True,
         secure=SECURE,
@@ -32,7 +34,7 @@ def set_auth_cookies(
     )
 
     response.set_cookie(
-        key=REFRESH_COOKIE,
+        key="refresh_token",
         value=refresh_token,
         httponly=True,
         secure=SECURE,
@@ -44,11 +46,27 @@ def set_auth_cookies(
 
 def clear_auth_cookies(response: Response) -> None:
     response.delete_cookie(
-        key=ACCESS_COOKIE,
+        key="access_token",
         path=ACCESS_PATH,
     )
 
     response.delete_cookie(
-        key=REFRESH_COOKIE,
+        key="refresh_token",
         path=REFRESH_PATH,
     )
+
+
+def get_current_user(
+        token_provider: JwtTokenService,
+        user_service: UserService,
+        access_token: str | None = Cookie(default=None)
+):
+
+    if not access_token:
+        raise UnauthorizedError("Não autenticado")
+
+    payload = token_provider.decode_access_token(access_token)
+
+    user_id = int(payload["sub"])
+
+    return user_service.current_user(user_id)
