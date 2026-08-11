@@ -28,5 +28,6 @@ a.ccc
 
 
 .postgres_local/
+.postman/
 
 pg/
