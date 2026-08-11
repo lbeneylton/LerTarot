@@ -67,6 +67,9 @@ def get_current_user(
 
     payload = token_provider.decode_access_token(access_token)
 
+    if not payload:
+        raise UnauthorizedError("Token inválido")
+
     user_id = int(payload["sub"])
 
     return user_service.current_user(user_id)
