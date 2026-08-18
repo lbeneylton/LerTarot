@@ -170,3 +170,42 @@ class Reader(User):
     __mapper_args__ = {
         "polymorphic_identity": UserType.READER,
     }
+
+
+
+class EmailVerificationCode(Base):
+    __tablename__ = "email_verification_codes"
+    
+    code_id:  Mapped[int] = mapped_column(
+        Integer,
+        Identity(always=False),
+        primary_key=True
+    )
+    
+    user_id :Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("users.user_id"),
+        nullable=False,
+        index=True
+    )
+    
+    code_hash:Mapped[str] = mapped_column(
+        String(255),
+        nullable=False
+    )
+    
+    expires_at:Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False
+    )
+  
+    used_at:Mapped[int] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True
+    )
+    
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=func.now(),
+        nullable=False,
+    )
