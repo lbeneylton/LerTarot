@@ -1,117 +1,141 @@
 """Módulo para criação e decodificação de tokens JWT."""
-
+from uuid import uuid7
 from datetime import datetime, timedelta, timezone
 
-from jose import JOSEError, JWTError, jwt
+from jose import jwt, JWTError, ExpiredSignatureError
 
 # Configurações
 from app.core.config import settings
 
+from app.core.exceptions import UnauthorizedError
 
 SECRET_KEY = settings.secret_key
 ALGORITHM = settings.algorithm
 
+# TODO pegar de configurações do .env
+REFRESH_EXPIRE_DAYS = 30
+ACCESS_EXPIRE_MINUTES = 5
+
 
 class JwtTokenService:
+    def __init__(
+        self, 
+        secret_key:str, 
+        algorithm: str, 
+        access_exp_m: int,
+        refresh_exp_d:int 
+    ) -> None:
+        self.secret_key = secret_key
+        self.algorithm = algorithm
+        
+        self.access_exp_m = access_exp_m
+        self.refresh_exp_d = refresh_exp_d
+    
+    def _encode(self, payload: dict) -> str:
+        return jwt.encode(
+            payload,
+            self.secret_key,
+            self.algorithm
+        )
+    
     def create_refresh_token(self, user_id: int) -> str:
-        expire = datetime.now(timezone.utc) + timedelta(days=7)
+        now = datetime.now(timezone.utc)
 
         payload = {
             "sub": str(user_id),
             "type": "refresh",
-            "exp": int(expire.timestamp()),
+            "jti": str(uuid7()),
+            "iat": now,
+            "exp": now + timedelta(
+                days=self.refresh_exp_d
+            ),
         }
 
-        return jwt.encode(
-            payload,
-            SECRET_KEY,
-            algorithm=ALGORITHM,
-        )
+        return self._encode(payload)
 
     def create_access_token(self, user_id: int) -> str:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=30)
+        now = datetime.now(timezone.utc)
 
         payload = {
             "sub": str(user_id),
             "type": "access",
-            "exp": int(expire.timestamp()),
+            "iat": now,
+            "exp": now + timedelta(
+                minutes=self.access_exp_m    
+            ),
         }
 
-        return jwt.encode(
-            payload,
-            SECRET_KEY,
-            algorithm=ALGORITHM,
-        )
+        return self._encode(payload)
 
     def _decode_token(self, token: str) -> dict:
         """
-        Verifica assinatura e expiração do JWT.
+        Verifica assinatura e expiração do JWT e subject.
 
         Lança JWTError caso o token seja inválido ou expirado.
         """
         try:
-            return jwt.decode(
+            payload = jwt.decode(
                 token,
-                SECRET_KEY,
-                algorithms=[ALGORITHM],
+                self.secret_key,
+                algorithms=[self.algorithm],
             )
-        except JOSEError:
-            raise
+            
+            if "sub" not in payload:
+                raise JWTError("Token sem usuário identificado")
+            
+            return payload
+            
+        except ExpiredSignatureError:
+            raise UnauthorizedError("Refresh token expirado")
+        except JWTError:
+            raise UnauthorizedError("Refresh token inválido")
 
-    def decode_refresh_token(self, token: str) -> dict:
+    def decode_refresh_token(self, refresh_token: str) -> dict:
         """
         Valida e decodifica especificamente um refresh token.
 
         Verifica:
-        - assinatura;
-        - expiração;
-        - existência do subject;
+        - assinatura (_decode_token);
+        - expiração (_decode_token);
+        - existência do subject (_decode_token);
         - tipo do token.
 
         Lança JWTError caso o token seja inválido.
         """
-
-        payload = self._decode_token(token)
+        payload = self._decode_token(refresh_token)
 
         if payload.get("type") != "refresh":
             raise JWTError("Token não é um refresh token")
 
-        if "sub" not in payload:
-            raise JWTError("Refresh token sem usuário")
-
         return payload
 
-    def decode_access_token(self, token: str) -> dict:
+    def decode_access_token(self, access_token: str) -> dict:
         """
         Valida e decodifica especificamente um access token.
 
         Verifica:
-        - assinatura;
-        - expiração;
-        - existência do subject;
+        - assinatura (_decode_token);
+        - expiração (_decode_token);
+        - existência do subject (_decode_token);
         - tipo do token.
 
         Lança JWTError caso o token seja inválido.
         """
-
-        payload = self._decode_token(token)
+        payload = self._decode_token(access_token)
 
         if payload.get("type") != "access":
             raise JWTError("Token não é um access token")
 
-        if "sub" not in payload:
-            raise JWTError("Refresh token sem usuário")
-
         return payload
 
-    def get_user_id_from_token(self, token: str) -> int:
-        """
-        Retorna o ID do usuário presente no token.
-        """
 
-        payload = self._decode_token(token)
+    # def _get_sub(self, token: str) -> int:
+    #     """
+    #     Retorna o ID do usuário presente no token.
+    #     """
+    #     payload = self._decode_token(token)
 
-        if "sub" not in payload:
-            raise JWTError("Token sem identificação do usuário")
+    #     if "sub" not in payload:
+    #         raise JWTError("Token sem identificação do usuário")
 
-        return int(payload["sub"])
+    #     return int(payload["sub"])
