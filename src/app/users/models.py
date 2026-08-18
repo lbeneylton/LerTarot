@@ -13,6 +13,7 @@ from sqlalchemy import (
     Index,
     String,
     Integer,
+    Boolean,
     DateTime,
     func,
     Enum as SQLEnum,
@@ -74,6 +75,12 @@ class User(Base):
     email: Mapped[str] = mapped_column(
         String(100),
         nullable=False,
+    )
+    
+    email_verified: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=False
     )
 
     password_hash: Mapped[str] = mapped_column(
