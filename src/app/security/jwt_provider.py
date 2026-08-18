@@ -11,10 +11,8 @@ from app.core.exceptions import UnauthorizedError
 
 SECRET_KEY = settings.secret_key
 ALGORITHM = settings.algorithm
-
-# TODO pegar de configurações do .env
-REFRESH_EXPIRE_DAYS = 30
-ACCESS_EXPIRE_MINUTES = 5
+REFRESH_EXPIRE_DAYS = settings.refresh_expire_days
+ACCESS_EXPIRE_MINUTES = settings.access_expire_minutes
 
 
 class JwtTokenService:
