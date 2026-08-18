@@ -209,3 +209,6 @@ class EmailVerificationCode(Base):
         default=func.now(),
         nullable=False,
     )
+    
+# class token_version(Base):
+#     pass
