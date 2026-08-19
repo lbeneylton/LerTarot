@@ -1,5 +1,4 @@
 """Módulo para criação e decodificação de tokens JWT."""
-from uuid import uuid7
 from datetime import datetime, timedelta, timezone
 
 from jose import jwt, JWTError, ExpiredSignatureError
@@ -36,13 +35,13 @@ class JwtTokenService:
             self.algorithm
         )
     
-    def create_refresh_token(self, user_id: int) -> str:
+    def create_refresh_token(self, user_id: int, version:int) -> str:
         now = datetime.now(timezone.utc)
 
         payload = {
             "sub": str(user_id),
             "type": "refresh",
-            "jti": str(uuid7()),
+            "token_version": str(version),
             "iat": now,
             "exp": now + timedelta(
                 days=self.refresh_exp_d
@@ -51,12 +50,13 @@ class JwtTokenService:
 
         return self._encode(payload)
 
-    def create_access_token(self, user_id: int) -> str:
+    def create_access_token(self, user_id: int, version: int) -> str:
         now = datetime.now(timezone.utc)
 
         payload = {
             "sub": str(user_id),
             "type": "access",
+            "token_version": str(version),        
             "iat": now,
             "exp": now + timedelta(
                 minutes=self.access_exp_m    
@@ -84,9 +84,9 @@ class JwtTokenService:
             return payload
             
         except ExpiredSignatureError:
-            raise UnauthorizedError("Refresh token expirado")
+            raise UnauthorizedError("Token expirado")
         except JWTError:
-            raise UnauthorizedError("Refresh token inválido")
+            raise UnauthorizedError("Assinatura inválida")
 
     def decode_refresh_token(self, refresh_token: str) -> dict:
         """
@@ -125,15 +125,3 @@ class JwtTokenService:
             raise JWTError("Token não é um access token")
 
         return payload
-
-
-    # def _get_sub(self, token: str) -> int:
-    #     """
-    #     Retorna o ID do usuário presente no token.
-    #     """
-    #     payload = self._decode_token(token)
-
-    #     if "sub" not in payload:
-    #         raise JWTError("Token sem identificação do usuário")
-
-    #     return int(payload["sub"])

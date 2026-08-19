@@ -87,6 +87,12 @@ class User(Base):
         String(255),
         nullable=False,
     )
+    
+    token_version: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0
+    )
 
     role: Mapped[UserRole] = mapped_column(
         SQLEnum(

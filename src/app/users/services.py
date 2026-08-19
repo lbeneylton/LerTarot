@@ -1,6 +1,6 @@
 # Classe para hashes
 from app.security.hasher import Argon2Hasher
-from app.security.jwt_provider import JwtTokenService
+from app.security.jwt_provider import JwtTokenService, JWTError
 
 # Erros
 from app.core.exceptions import ConflictError
@@ -11,7 +11,7 @@ from app.users.models import User
 
 # Repo e schemas
 from app.users.repo import UserRepo
-from app.users.schemas import UserCreate
+from app.users.schemas import UserCreate, TokensResponse
 
 
 class UserService:
@@ -25,9 +25,36 @@ class UserService:
         self.hasher = hasher
         self.token_provider = token_provider
 
+    def _generate_tokens(self, user: User) -> TokensResponse:
+        """
+        Gera access token e refresh token para o usuário.
+        """
+        return TokensResponse(
+            access_token=self.token_provider.create_access_token(
+                user.user_id,
+                user.token_version
+            ),
+            refresh_token=self.token_provider.create_refresh_token(
+                user.user_id,
+                user.token_version
+            )
+        )
+    
+    def _revoke_token(self, user: User) -> User:
+        # Revoga todos os tokens anteriores
+        user.token_version += 1
+
+        self.repo.save(user)
+        self.repo.session.commit()
+        self.repo.session.refresh(user)
+        
+        return user
+
     def create_user(self, data: UserCreate) -> User:
         """
         Cria um novo usuário.
+        
+        TODO diminuir acesso ao banco utilziando analise de constraints UNIQUE
         """
         if self.repo.get_active_by_email(data.email):
             raise ConflictError("Já existe um usuário com esse email")
@@ -51,7 +78,7 @@ class UserService:
 
         return user
 
-    def login(self, email_or_username: str, password: str):
+    def login(self, email_or_username: str, password: str) -> TokensResponse:
         """
         Autentica o usuário pelo e-mail ou username.
 
@@ -84,14 +111,24 @@ class UserService:
         ):
             raise UnauthorizedError("Credenciais inválidas")
 
-        return {
-            "access_token": self.token_provider.create_access_token(user.user_id),
-            "refresh_token": self.token_provider.create_refresh_token(user.user_id)
-        }
+        user = self._revoke_token(user)
 
-    def refresh(self, refresh_token: str) -> dict:
+        return TokensResponse(
+            access_token=self.token_provider.create_access_token(
+                user.user_id,
+                user.token_version
+            ),
+            refresh_token=self.token_provider.create_refresh_token(
+                user.user_id,
+                user.token_version
+            )
+        )
+              
+    def refresh(self, refresh_token: str) -> TokensResponse:
         """
-        Gera um novo access token e um novo refresh token.
+        Gera um novo access token e
+        com Refresh Token Rotation 
+        gera um novo refresh token também.
 
         O refresh token não é armazenado no banco.
         Portanto, sua validade depende exclusivamente
@@ -100,53 +137,68 @@ class UserService:
         O JwtTokenService precisa disponibilizar um método
         para validar/decodificar refresh tokens.
         """
-
-        try:
-            payload = self.token_provider.decode_refresh_token(
-                refresh_token
-            )
-        except Exception:  # JOSEErro
+        if not refresh_token:
             raise UnauthorizedError(
-                "Refresh token inválido ou expirado"
+                "Refresh token ausente"
             )
+        
+        payload = self.token_provider.decode_refresh_token(
+            refresh_token
+        )
 
         user_id = int(payload["sub"])
 
         user = self.repo.get_active_by_id(user_id)
+        if not user:
+            raise UnauthorizedError("Usuário não encontrado")
 
-        if user is None:
+
+        token_version = payload["token_version"]
+
+        if token_version != user.token_version:
             raise UnauthorizedError(
-                "Usuário não encontrado"
+                "Token revogado"
             )
 
-        return {
-            "access_token": (
-                self.token_provider.create_access_token(
-                    user.user_id
-                )
-            ),
-            "refresh_token": (
-                self.token_provider.create_refresh_token(
-                    user.user_id
-                )
-            ),
-        }
 
-    def logout(self, refresh_token: str | None = None) -> None:
+        return TokensResponse(
+            access_token=self.token_provider.create_access_token(
+                user.user_id,
+                user.token_version
+            ),
+            refresh_token=self.token_provider.create_refresh_token(
+                user.user_id,
+                user.token_version
+            )
+        )
+
+    def logout(self, refresh_token: str) -> None:
         """
         Logout.
 
-        Como os refresh tokens ainda não são armazenados/revogados,
-        não existe invalidação real no servidor neste momento.
-
-        No cliente, os tokens devem ser removidos.
-
-        Quando implementar blacklist/revogação, este método deverá
-        registrar o refresh token como revogado.
+        - Verifica se existe um refresh_token
+        - Decode o token refresh
+        - Verifica se existe o user  
+        - Revoga Token
+        - Apaga os Tokens dos cookies
         """
+        if not refresh_token:
+            raise UnauthorizedError(
+                "Refresh token ausente"
+            )
+          
+        payload = self.token_provider.decode_refresh_token(
+            refresh_token
+        )
+        
+        user_id = int(payload["sub"])
+        user = self.repo.get_active_by_id(user_id)
+        if not user:
+            raise UnauthorizedError("Usuário não encontrado")
 
-        # Stateless JWT:
-        # não há nada para persistir/revogar por enquanto.
+            
+        user = self._revoke_token(user)
+        # APAGAR COOKIES
         return None
 
     def login_google(
@@ -226,37 +278,5 @@ class UserService:
 
         self.repo.save(user)
 
-    def current_user(
-        self,
-        user_id,
-    ) -> User:
-        """
-        Retorna o usuário autenticado pelo ID contido no JWT.
-        """
 
-        user = self.repo.get_active_by_id(user_id)
-
-        if user is None:
-            raise UnauthorizedError(
-                "Usuário não encontrado"
-            )
-
-        return user
-
-    def generate_tokens(self, user: User) -> dict:
-        """
-        Gera access token e refresh token para o usuário.
-        """
-
-        return {
-            "access_token": (
-                self.token_provider.create_access_token(
-                    user.user_id
-                )
-            ),
-            "refresh_token": (
-                self.token_provider.create_refresh_token(
-                    user.user_id
-                )
-            ),
-        }
+ 

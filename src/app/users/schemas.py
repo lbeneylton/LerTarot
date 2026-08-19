@@ -1,10 +1,11 @@
+from typing import Optional
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from app.users.enums import UserType
 
 
 class UserCreate(BaseModel):
-    username: str | None = Field(..., min_length=1, max_length=50)
+    username: Optional[str] = Field(..., min_length=1, max_length=50)
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=128)
     role: UserType = UserType.CLIENTE
@@ -23,7 +24,11 @@ class LoginSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class TokensResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+
+
 class AuthResponse(BaseModel):
     message: str
-
     model_config = ConfigDict(from_attributes=True)
