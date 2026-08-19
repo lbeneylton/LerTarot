@@ -13,17 +13,21 @@ from app.users.models import User
 from app.users.repo import UserRepo
 from app.users.schemas import UserCreate, TokensResponse
 
+# Email Sender
+from app.email.sender import EmailSender
 
 class UserService:
     def __init__(
         self,
         repo: UserRepo,
         hasher: Argon2Hasher,
-        token_provider: JwtTokenService
+        token_provider: JwtTokenService,
+        email_sender: EmailSender
     ) -> None:
         self.repo = repo
         self.hasher = hasher
         self.token_provider = token_provider
+        self.email_sender = email_sender
 
     def _generate_tokens(self, user: User) -> TokensResponse:
         """
@@ -184,25 +188,18 @@ class UserService:
         # APAGAR COOKIES
         return "Usuário deslogado"
 
-    def login_google(
-        self,
-        google_token: str,
-    ) -> dict:
-        """
-        Login via Google.
+    def request_email_code(self, user: User):
+        """Gera código de autentificação e envia pro email"""
+        
+        # Gera codigo de autenticação com expiração
+        code=""
+        
+        # Envia código pro email do usuario
+        self.email_sender.send_code(code, user.email)
+        pass
 
-        A validação do token do Google ainda precisa ser implementada.
-
-        O ideal é criar um GoogleAuthService separado para:
-        1. validar o token;
-        2. obter email/nome/google_id;
-        3. localizar ou criar o usuário;
-        4. retornar os tokens da aplicação.
-        """
-
-        raise NotImplementedError(
-            "Integração com Google ainda não implementada"
-        )
+    def verify_email(self, user:User, code: str) -> bool:
+        return True
 
     def recovery_password(
         self,
@@ -219,7 +216,7 @@ class UserService:
 
         O token de recuperação NÃO deve ser o mesmo
         refresh token do usuário.
-        """
+        """       
 
         user = self.repo.get_active_by_email(email)
 
@@ -237,7 +234,7 @@ class UserService:
         user: User,
         current_password: str,
         new_password: str,
-    ) -> None:
+    ) -> str:
         """
         Altera a senha de um usuário autenticado.
         """
@@ -260,6 +257,28 @@ class UserService:
         )
 
         self.repo.save(user)
+        self.repo.session.commit()
+        self.repo.session.refresh(user)
+        
+        return "Senha alterada"
 
+    def login_google(
+        self,
+        google_token: str,
+    ) -> dict:
+        """
+        Login via Google.
 
+        A validação do token do Google ainda precisa ser implementada.
+
+        O ideal é criar um GoogleAuthService separado para:
+        1. validar o token;
+        2. obter email/nome/google_id;
+        3. localizar ou criar o usuário;
+        4. retornar os tokens da aplicação.
+        """
+
+        raise NotImplementedError(
+            "Integração com Google ainda não implementada"
+        )
  
