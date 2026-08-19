@@ -8,13 +8,14 @@ from app.core.exceptions import AppException
 from app.core.handler import app_exception_handler
 
 # Rotas
-from api.auth import auther
+from api.auth import auth_router
 
 
 app = FastAPI(
     title="Ler Tarot API",
     version="0.1.0",
-    description="API da plataforma Ler_Tarot",
+    summary="API da plataforma Ler Tarot",
+    description="Catalógos e agendamentos",
 )
 
 origins = [
@@ -33,9 +34,9 @@ app.add_middleware(
 
 app.add_exception_handler(AppException, app_exception_handler)  # type: ignore
 
-app.include_router(auther, tags=["Auth"])
+app.include_router(auth_router, tags=["Auth"])
 
 
-@app.get("/health", tags=["health"])
+@app.get("/health", tags=["Health"])
 def health() -> dict[str, str]:
     return {"status": "ok"}

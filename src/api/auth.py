@@ -24,7 +24,8 @@ auth_router = APIRouter(prefix="/auth", tags=["Auth"])
 @auth_router.post(
     "/register",
     status_code=status.HTTP_201_CREATED,
-    response_model=AuthResponse
+    response_model=AuthResponse,
+    summary="Registro e login de um usuário"
 )
 def register(
     data : UserCreate,
@@ -50,7 +51,8 @@ def register(
 @auth_router.post(
     "/login",
     status_code=status.HTTP_202_ACCEPTED,
-    response_model=AuthResponse
+    response_model=AuthResponse,
+    summary="Login de um usuário"
 )
 def login(
     data: LoginRequest,
@@ -76,7 +78,8 @@ def login(
 @auth_router.post(
     "/refresh",
     status_code=status.HTTP_202_ACCEPTED,
-    response_model=AuthResponse
+    response_model=AuthResponse,
+    summary="Refresh e revogação dos tokens"
 )
 def refresh(
     response: Response,
@@ -99,7 +102,8 @@ def refresh(
 @auth_router.post(
     "/logout",
     status_code=status.HTTP_202_ACCEPTED,
-    response_model=AuthResponse
+    response_model=AuthResponse,
+    summary="Revogação dos tokens"
 )
 def logout(
     response: Response,

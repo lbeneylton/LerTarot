@@ -216,5 +216,3 @@ class EmailVerificationCode(Base):
         nullable=False,
     )
     
-# class token_version(Base):
-#     pass
