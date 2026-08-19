@@ -17,7 +17,7 @@ class UserCreate(BaseModel):
 
 #
 
-class LoginSchema(BaseModel):
+class LoginRequest(BaseModel):
     email_or_username: str | EmailStr
     password: str = Field(..., min_length=8, max_length=128)
 

@@ -1,16 +1,10 @@
-
-
-
-
-
-
 # FastAPI
 from fastapi import APIRouter, Response, Cookie, Depends, status
 
 # Schemas
 from app.users.schemas import (
     UserCreate,
-    LoginSchema,
+    LoginRequest,
     AuthResponse
 )
 
@@ -59,7 +53,7 @@ def register(
     response_model=AuthResponse
 )
 def login(
-    data: LoginSchema,
+    data: LoginRequest,
     response: Response,
     service: UserService = Depends(get_user_service),
 ):
