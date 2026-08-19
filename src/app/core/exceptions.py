@@ -38,3 +38,7 @@ class ConflictError(AppException):
 
 class PasswordError(AppException):
     pass
+
+
+class VerificationError(UnauthorizedError):
+    pass

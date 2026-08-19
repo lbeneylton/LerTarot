@@ -3,8 +3,11 @@ from app.security.hasher import Argon2Hasher
 from app.security.jwt_provider import JwtTokenService
 
 # Erros
-from app.core.exceptions import ConflictError
-from app.core.exceptions import UnauthorizedError
+from app.core.exceptions import (
+    ConflictError,
+    UnauthorizedError, 
+    VerificationError
+)
 
 # Tipos e modelos
 from app.users.models import User
@@ -13,20 +16,20 @@ from app.users.models import User
 from app.users.repo import UserRepo
 from app.users.schemas import UserCreate, TokensResponse
 
-# Email Sender
-from app.email.sender import EmailSender
+# Email Sender e secrets
+from app.emails.sender import EmailSender
 
 class UserService:
     def __init__(
         self,
         repo: UserRepo,
         hasher: Argon2Hasher,
-        token_provider: JwtTokenService,
+        provider_token: JwtTokenService,
         email_sender: EmailSender
     ) -> None:
         self.repo = repo
         self.hasher = hasher
-        self.token_provider = token_provider
+        self.provider_token = provider_token
         self.email_sender = email_sender
 
     def _generate_tokens(self, user: User) -> TokensResponse:
@@ -34,11 +37,11 @@ class UserService:
         Gera access token e refresh token para o usuário.
         """
         return TokensResponse(
-            access_token=self.token_provider.create_access_token(
+            access_token=self.provider_token.create_access_token(
                 user.user_id,
                 user.token_version
             ),
-            refresh_token=self.token_provider.create_refresh_token(
+            refresh_token=self.provider_token.create_refresh_token(
                 user.user_id,
                 user.token_version
             )
@@ -54,6 +57,12 @@ class UserService:
         
         return user
 
+    def email_is_verified(self, user: User) :
+        if user.email_verified:
+            raise  VerificationError(
+                "Email já verificado"
+            )
+
     def create_user(self, data: UserCreate) -> User:
         """
         Cria um novo usuário.
@@ -67,7 +76,7 @@ class UserService:
             if self.repo.get_active_by_username(data.username):
                 raise ConflictError("Username já cadastrado")
 
-        password_hash = self.hasher.hash_password(data.password)
+        password_hash = self.hasher.hash(data.password)
 
         user = User(
             email=data.email,
@@ -109,7 +118,7 @@ class UserService:
         if user is None:
             raise UnauthorizedError("Credenciais inválidas")
 
-        if not self.hasher.verify_password(
+        if not self.hasher.verify_hash(
             password,
             user.password_hash
         ):
@@ -137,7 +146,7 @@ class UserService:
                 "Refresh token ausente"
             )
         
-        payload = self.token_provider.decode_refresh_token(
+        payload = self.provider_token.decode_refresh_token(
             refresh_token
         )
 
@@ -172,7 +181,7 @@ class UserService:
                 "Refresh token ausente"
             )
           
-        payload = self.token_provider.decode_refresh_token(
+        payload = self.provider_token.decode_refresh_token(
             refresh_token
         )
         
@@ -188,80 +197,142 @@ class UserService:
         # APAGAR COOKIES
         return "Usuário deslogado"
 
-    def request_email_code(self, user: User):
-        """Gera código de autentificação e envia pro email"""
+
+
+
+    # def recovery_password(self, email: str) -> None:
+    #     """
+    #     Solicita recuperação de senha.
+
+    #     Gera um token temporário e envia para o e-mail.
+    #     """
+
+    #     user = self.repo.get_active_by_email(email)
+
+    #     # Não revela se o e-mail existe
+    #     if user is None:
+    #         return None
+
+    #     # Invalida tokens anteriores
+    #     self.password_reset_repo.invalidate_user_tokens(user.id)
+
+    #     # Token seguro
+    #     token = secrets.token_urlsafe(32)
+
+    #     # Validade de 15 minutos
+    #     expires_at = (
+    #         datetime.now(timezone.utc)
+    #         + timedelta(minutes=15)
+    #     )
+
+    #     # Não salvar o token puro
+    #     token_hash = self.hasher.hash_password(token)
+
+    #     self.password_reset_repo.create(
+    #         user_id=user.id,
+    #         token_hash=token_hash,
+    #         expires_at=expires_at,
+    #         used=False,
+    #     )
+
+    #     self.password_reset_repo.session.commit()
+
+    #     # Envia o token/link por e-mail
+    #     self.email_sender.send_password_recovery(
+    #         token,
+    #         user.email,
+    #     )
+
+    #     return None
+
+    # #
+    # # Password
+    # #
+    # def reset_password(
+    #     self,
+    #     token: str,
+    #     new_password: str,
+    # ) -> None:
+    #     """
+    #     Redefine a senha usando um token de recuperação.
+    #     """
+
+    #     reset = self.password_reset_repo.get_active_tokens()
+
+    #     now = datetime.now(timezone.utc)
+
+    #     for item in reset:
+    #         if item.used:
+    #             continue
+
+    #         if item.expires_at <= now:
+    #             continue
+
+    #         if self.hasher.verify_password(
+    #             token,
+    #             item.token_hash,
+    #         ):
+    #             user = self.repo.get_by_id(item.user_id)
+
+    #             if user is None:
+    #                 raise UnauthorizedError(
+    #                     "Token inválido"
+    #                 )
+
+    #             user.password_hash = (
+    #                 self.hasher.hash_password(new_password)
+    #             )
+
+    #             # Token só pode ser utilizado uma vez
+    #             item.used = True
+
+    #             self.repo.save(user)
+    #             self.password_reset_repo.save(item)
+
+    #             self.repo.session.commit()
+
+    #             return None
+
+    #     raise UnauthorizedError(
+    #         "Token de recuperação inválido ou expirado"
+    #     )
+
+    # def change_password(
+    #     self,
+    #     user: User,
+    #     current_password: str,
+    #     new_password: str,
+    # ) -> str:
+    #     """
+    #     Altera a senha de um usuário autenticado.
+    #     """
+
+    #     if not self.hasher.verify_password(
+    #         current_password,
+    #         user.password_hash,
+    #     ):
+    #         raise UnauthorizedError(
+    #             "Senha atual inválida"
+    #         )
+
+    #     if current_password == new_password:
+    #         raise ConflictError(
+    #             "A nova senha deve ser diferente da senha atual"
+    #         )
+
+    #     user.password_hash = self.hasher.hash_password(
+    #         new_password
+    #     )
+
+    #     self.repo.save(user)
+    #     self.repo.session.commit()
+    #     self.repo.session.refresh(user)
         
-        # Gera codigo de autenticação com expiração
-        code=""
-        
-        # Envia código pro email do usuario
-        self.email_sender.send_code(code, user.email)
-        pass
+    #     return "Senha alterada"
 
-    def verify_email(self, user:User, code: str) -> bool:
-        return True
-
-    def recovery_password(
-        self,
-        email: str,
-    ) -> None:
-        """
-        Solicita recuperação de senha.
-
-        Fluxo recomendado:
-        1. localizar usuário;
-        2. gerar token de recuperação;
-        3. salvar token com expiração;
-        4. enviar e-mail.
-
-        O token de recuperação NÃO deve ser o mesmo
-        refresh token do usuário.
-        """       
-
-        user = self.repo.get_active_by_email(email)
-
-        # Por segurança, normalmente não informamos
-        # se o e-mail existe ou não.
-        if user is None:
-            return None
-
-        raise NotImplementedError(
-            "Fluxo de recuperação de senha ainda não implementado"
-        )
-
-    def change_password(
-        self,
-        user: User,
-        current_password: str,
-        new_password: str,
-    ) -> str:
-        """
-        Altera a senha de um usuário autenticado.
-        """
-
-        if not self.hasher.verify_password(
-            current_password,
-            user.password_hash,
-        ):
-            raise UnauthorizedError(
-                "Senha atual inválida"
-            )
-
-        if current_password == new_password:
-            raise ConflictError(
-                "A nova senha deve ser diferente da senha atual"
-            )
-
-        user.password_hash = self.hasher.hash_password(
-            new_password
-        )
-
-        self.repo.save(user)
-        self.repo.session.commit()
-        self.repo.session.refresh(user)
-        
-        return "Senha alterada"
-
+    #
+    # Login Provider
+    #
     def login_google(
         self,
         google_token: str,
@@ -282,3 +353,14 @@ class UserService:
             "Integração com Google ainda não implementada"
         )
  
+ 
+ 
+ 
+#  PasswordResetToken
+# ------------------
+# id
+# user_id
+# token_hash
+# expires_at
+# used
+# created_at

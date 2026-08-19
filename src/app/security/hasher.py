@@ -5,22 +5,22 @@ from argon2 import PasswordHasher
 class Argon2Hasher():
 
     def __init__(self):
-        self.password_hasher = PasswordHasher()
+        self.hasher = PasswordHasher()
 
     # Cria hash da senha
-    def hash_password(self, password: str) -> str:
-        return self.password_hasher.hash(password)
+    def hash(self, password: str) -> str:
+        return self.hasher.hash(password)
 
     # verifica se a senha gera o hash
 
-    def verify_password(
+    def verify_hash(
         self,
         password: str,
         password_hash: str
     ) -> bool:
 
         try:
-            return self.password_hasher.verify(
+            return self.hasher.verify(
                 password_hash,
                 password
             )
