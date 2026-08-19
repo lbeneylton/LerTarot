@@ -5,7 +5,8 @@ class UserType(str, Enum):
     """
     Perfis de acesso disponíveis no sistema.
 
-    Attributes:
+    Tipos:
+    
         ADMIN:
             Acesso total ao sistema.
 
