@@ -115,7 +115,7 @@ class UserService:
         
         return self._generate_tokens(user)
                 
-    def refresh(self, refresh_token: str) -> TokensResponse:
+    def refresh(self, refresh_token: str | None) -> TokensResponse:
         """
         Gera um novo access token e
         com Refresh Token Rotation 
@@ -153,7 +153,7 @@ class UserService:
 
         return self._generate_tokens(user)
 
-    def logout(self, refresh_token: str) -> str:
+    def logout(self, refresh_token: str | None) -> str:
         """
         Logout.
 
@@ -175,10 +175,12 @@ class UserService:
         user_id = int(payload["sub"])
         user = self.repo.get_active_by_id(user_id)
         if not user:
-            raise UnauthorizedError("Usuário não encontrado")
+            raise UnauthorizedError(
+                "Usuário não encontrado"
+            )
 
             
-        user = self._revoke_token(user)
+        self._revoke_token(user)
         # APAGAR COOKIES
         return "Usuário deslogado"
 
