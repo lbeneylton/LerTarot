@@ -17,10 +17,10 @@ ACCESS_EXPIRE_MINUTES = settings.access_expire_minutes
 class JwtTokenService:
     def __init__(
         self, 
-        secret_key:str, 
-        algorithm: str, 
-        access_exp_m: int,
-        refresh_exp_d:int 
+        secret_key:str = SECRET_KEY, 
+        algorithm: str = ALGORITHM, 
+        access_exp_m: int = ACCESS_EXPIRE_MINUTES,
+        refresh_exp_d:int = REFRESH_EXPIRE_DAYS 
     ) -> None:
         self.secret_key = secret_key
         self.algorithm = algorithm
@@ -125,3 +125,7 @@ class JwtTokenService:
             raise JWTError("Token não é um access token")
 
         return payload
+
+
+
+jwt_token_service = JwtTokenService()
