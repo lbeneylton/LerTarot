@@ -1,6 +1,6 @@
 # Classe para hashes
 from app.security.hasher import Argon2Hasher
-from app.security.jwt_provider import JwtTokenService, JWTError
+from app.security.jwt_provider import JwtTokenService
 
 # Erros
 from app.core.exceptions import ConflictError
@@ -112,18 +112,9 @@ class UserService:
             raise UnauthorizedError("Credenciais inválidas")
 
         user = self._revoke_token(user)
-
-        return TokensResponse(
-            access_token=self.token_provider.create_access_token(
-                user.user_id,
-                user.token_version
-            ),
-            refresh_token=self.token_provider.create_refresh_token(
-                user.user_id,
-                user.token_version
-            )
-        )
-              
+        
+        return self._generate_tokens(user)
+                
     def refresh(self, refresh_token: str) -> TokensResponse:
         """
         Gera um novo access token e
@@ -160,19 +151,9 @@ class UserService:
                 "Token revogado"
             )
 
+        return self._generate_tokens(user)
 
-        return TokensResponse(
-            access_token=self.token_provider.create_access_token(
-                user.user_id,
-                user.token_version
-            ),
-            refresh_token=self.token_provider.create_refresh_token(
-                user.user_id,
-                user.token_version
-            )
-        )
-
-    def logout(self, refresh_token: str) -> None:
+    def logout(self, refresh_token: str) -> str:
         """
         Logout.
 
@@ -199,7 +180,7 @@ class UserService:
             
         user = self._revoke_token(user)
         # APAGAR COOKIES
-        return None
+        return "Usuário deslogado"
 
     def login_google(
         self,
