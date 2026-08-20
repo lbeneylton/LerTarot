@@ -2,53 +2,126 @@ import logging
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
+from app.core.config import get_settings
 
-# Diretorio para logs (cria se não existe)
-LOG_DIR = Path("logs")
-LOG_DIR.mkdir(exist_ok=True)
 
-# Formato padrão dos logs   [DATA HORA] TIPO NOME_LOGGER MENSAGEM
-LOG_FORMAT = (
-    "[%(asctime)s] "
-    "%(levelname)s "
-    "%(name)s "
-    "- %(message)s"
-)
+class AppLogger:
+    LOG_DIR = Path("logs")
+    LOG_FILE = LOG_DIR / "app.log"
 
-# Formata da data
-DATE_FORMAT = "%d-%m-%Y %H:%M:%S"
+    LOG_FORMAT = (
+        "[%(asctime)s] "
+        "%(levelname)s "
+        "%(filename)s:%(lineno)d "
+        "- %(message)s"
+    )
 
-# Formatador
-formatter = logging.Formatter(
-    LOG_FORMAT,
-    datefmt=DATE_FORMAT
-)
+    DATE_FORMAT = "%d-%m-%Y %H:%M:%S"
 
-# Handler de arquivos
-file_handler = RotatingFileHandler(
-    LOG_DIR / "app.log",
-    maxBytes=5 * 1024 * 1024,  # (5 MB)
-    backupCount=3,
-    encoding="utf-8"
-)
+    def __init__(
+        self,
+        environment: str,
+        name: str = "app"
+    ) -> None:
 
-# Setando o formato de arquivo para o file_handler
-file_handler.setFormatter(formatter)
+        self.environment = environment
+        self.name = name
+        self.logger = logging.getLogger(name)
 
-# Logs no console
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(formatter)
+        if not self.logger.handlers:
+            self._configure()
 
-# configurações dos LOGS, onde serão exibidos e nivel minimo (INFO)
-logging.basicConfig(
-    level=logging.DEBUG,
-    handlers=[
-        console_handler,
-        file_handler
-    ]
-)
+    def _configure(self) -> None:
 
-if __name__ == "__main__":
-    # Criação da instâcia do logger
-    logger = logging.getLogger("app")
-    logger.error("Pix enviado")
+        formatter = logging.Formatter(
+            self.LOG_FORMAT,
+            datefmt=self.DATE_FORMAT
+        )
+
+        # ==========================
+        # DEV
+        # ==========================
+
+        if self.environment == "DEV":
+
+            self.LOG_DIR.mkdir(exist_ok=True)
+
+            self.logger.setLevel(logging.DEBUG)
+
+            file_handler = RotatingFileHandler(
+                self.LOG_FILE,
+                maxBytes=5 * 1024 * 1024,
+                backupCount=3,
+                encoding="utf-8"
+            )
+
+            file_handler.setFormatter(formatter)
+            self.logger.addHandler(file_handler)
+
+        # ==========================
+        # PROD
+        # ==========================
+
+        elif self.environment == "PROD":
+
+            self.logger.setLevel(logging.INFO)
+
+        # ==========================
+        # CONSOLE
+        # ==========================
+
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(formatter)
+
+        self.logger.addHandler(console_handler)
+
+    def debug(self, message: str) -> None:
+        self.logger.debug(message, stacklevel=2)
+
+    def info(self, message: str) -> None:
+        self.logger.info(message, stacklevel=2)
+
+    def warning(
+        self,
+        message: str,
+        *,
+        exc_info=None
+    ) -> None:
+
+        self.logger.warning(
+            message,
+            stacklevel=2,
+            exc_info=exc_info
+        )
+
+    def error(
+        self,
+        message: str,
+        *,
+        exc_info=None
+    ) -> None:
+
+        self.logger.error(
+            message,
+            stacklevel=2,
+            exc_info=exc_info
+        )
+
+    def critical(
+        self,
+        message: str,
+        *,
+        exc_info=None
+    ) -> None:
+
+        self.logger.critical(
+            message,
+            stacklevel=2,
+            exc_info=exc_info
+        )
+
+    def exception(self, message: str) -> None:
+        self.logger.exception(
+            message,
+            stacklevel=2
+        )
