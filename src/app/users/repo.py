@@ -1,15 +1,14 @@
 from datetime import datetime, timezone
-from uuid import UUID
 
-from sqlalchemy.orm import Session
 from sqlalchemy import select
+from app.db.contract import SessionContract
 
 from app.users.models import User
 from typing import Sequence
 
 
 class UserRepo:
-    def __init__(self, session: Session) -> None:
+    def __init__(self, session: SessionContract) -> None:
         self.session = session
 
     # Query base apenas para usuários ativos
@@ -41,11 +40,6 @@ class UserRepo:
             self._active_only().where(User.username == username)
         ).scalar_one_or_none()
         return result
-
-    # Atualização genérica (merge/add)
-    # def update(self, user: User) -> User:
-    #     self.session.add(user)
-    #     return user
 
     # Soft delete
     def delete(self, user_id: int) -> User | None:

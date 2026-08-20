@@ -16,21 +16,74 @@ from app.users.models import User
 from app.users.repo import UserRepo
 from app.users.schemas import UserCreate, TokensResponse
 
-# Email Sender e secrets
-from app.emails_verify.sender import EmailSender
 
-class UserService:
+# Verificador de email
+from app.verify.services import VerificatorEmailService
+
+
+class CreateUserService:
+    def __init__(
+        self,
+        repo: UserRepo, 
+        hasher: Argon2Hasher, 
+        email_verificator: VerificatorEmailService
+    ) -> None:
+        self.repo = repo
+        self.hasher = hasher
+        self.email_verificator = email_verificator
+
+    def create_user(self, data: UserCreate) -> User:
+        """
+        Cria um novo usuário.
+        
+        # validar email
+        # validar username
+        # hash senha
+        # criar User
+        # salvar User
+        # enviar código
+        # retornar User
+        
+        TODO diminuir acesso ao banco utilziando analise de constraints UNIQUE
+        """
+        if self.repo.get_active_by_email(data.email):
+            raise ConflictError("Já existe um usuário com esse email")
+
+        if data.username:
+            if self.repo.get_active_by_username(data.username):
+                raise ConflictError("Username já cadastrado")
+
+        password_hash = self.hasher.hash(data.password)
+
+        user = User(
+            email=data.email,
+            username=data.username,
+            password_hash=password_hash,
+            role=data.role.value
+        )
+
+        self.repo.save(user)
+        self.repo.session.flush()
+        self.repo.session.refresh(user)
+        
+        # SEND CODE EMAIL
+        self.email_verificator.send_code(user)
+
+        return user
+
+
+
+
+class LoginUserService:
     def __init__(
         self,
         repo: UserRepo,
         hasher: Argon2Hasher,
         provider_token: JwtTokenService,
-        email_sender: EmailSender
     ) -> None:
         self.repo = repo
         self.hasher = hasher
         self.provider_token = provider_token
-        self.email_sender = email_sender
 
     def _generate_tokens(self, user: User) -> TokensResponse:
         """
@@ -52,43 +105,9 @@ class UserService:
         user.token_version += 1
 
         self.repo.save(user)
-        self.repo.session.commit()
+        self.repo.session.flush()
         self.repo.session.refresh(user)
         
-        return user
-
-    def email_is_verified(self, user: User) :
-        if user.email_verified:
-            raise  VerificationError(
-                "Email já verificado"
-            )
-
-    def create_user(self, data: UserCreate) -> User:
-        """
-        Cria um novo usuário.
-        
-        TODO diminuir acesso ao banco utilziando analise de constraints UNIQUE
-        """
-        if self.repo.get_active_by_email(data.email):
-            raise ConflictError("Já existe um usuário com esse email")
-
-        if data.username:
-            if self.repo.get_active_by_username(data.username):
-                raise ConflictError("Username já cadastrado")
-
-        password_hash = self.hasher.hash(data.password)
-
-        user = User(
-            email=data.email,
-            username=data.username,
-            password_hash=password_hash,
-            role=data.role.value
-        )
-
-        self.repo.save(user)
-        self.repo.session.commit()
-        self.repo.session.refresh(user)
-
         return user
 
     def login(self, email_or_username: str, password: str) -> TokensResponse:
@@ -123,6 +142,10 @@ class UserService:
             user.password_hash
         ):
             raise UnauthorizedError("Credenciais inválidas")
+
+        # Se email não verificado
+        if not user.email_verified:
+            raise VerificationError("Email não verificado")
 
         user = self._revoke_token(user)
         
@@ -197,8 +220,35 @@ class UserService:
         # APAGAR COOKIES
         return "Usuário deslogado"
 
+        #
+    
+    #
+    # Login Provider
+    #
+    def login_google(
+        self,
+        google_token: str,
+    ) -> dict:
+        """
+        Login via Google.
+
+        A validação do token do Google ainda precisa ser implementada.
+
+        O ideal é criar um GoogleAuthService separado para:
+        1. validar o token;
+        2. obter email/nome/google_id;
+        3. localizar ou criar o usuário;
+        4. retornar os tokens da aplicação.
+        """
+
+        raise NotImplementedError(
+            "Integração com Google ainda não implementada"
+        )
 
 
+class PasswordUserService:
+    def __init__(self) -> None:
+        pass
 
     # def recovery_password(self, email: str) -> None:
     #     """
@@ -235,7 +285,7 @@ class UserService:
     #         used=False,
     #     )
 
-    #     self.password_reset_repo.session.commit()
+    #     self.password_reset_repo.session.flush()
 
     #     # Envia o token/link por e-mail
     #     self.email_sender.send_password_recovery(
@@ -289,7 +339,7 @@ class UserService:
     #             self.repo.save(user)
     #             self.password_reset_repo.save(item)
 
-    #             self.repo.session.commit()
+    #             self.repo.session.flush()
 
     #             return None
 
@@ -325,33 +375,12 @@ class UserService:
     #     )
 
     #     self.repo.save(user)
-    #     self.repo.session.commit()
+    #     self.repo.session.flush()
     #     self.repo.session.refresh(user)
         
     #     return "Senha alterada"
 
-    #
-    # Login Provider
-    #
-    def login_google(
-        self,
-        google_token: str,
-    ) -> dict:
-        """
-        Login via Google.
 
-        A validação do token do Google ainda precisa ser implementada.
-
-        O ideal é criar um GoogleAuthService separado para:
-        1. validar o token;
-        2. obter email/nome/google_id;
-        3. localizar ou criar o usuário;
-        4. retornar os tokens da aplicação.
-        """
-
-        raise NotImplementedError(
-            "Integração com Google ainda não implementada"
-        )
  
  
  

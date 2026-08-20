@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from app.users.models import User
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import (
     Integer,
@@ -23,8 +23,8 @@ from sqlalchemy.orm import(
 from app.db.base import Base
 
 
-class EmailVerificationCode(Base):
-    __tablename__ = "email_verification_codes"
+class CodeEmailVerificator(Base):
+    __tablename__ = "codes_email_verifications"
     
     code_id:  Mapped[int] = mapped_column(
         Integer,
@@ -49,7 +49,7 @@ class EmailVerificationCode(Base):
         nullable=False
     )
   
-    used_at:Mapped[int] = mapped_column(
+    used_at:Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=True
     )
@@ -65,3 +65,8 @@ class EmailVerificationCode(Base):
         default=func.now(),
         nullable=False,
     )
+    
+    
+    @property
+    def code_expirado(self) -> bool:
+        return datetime.now(timezone.utc) >= self.expires_at
