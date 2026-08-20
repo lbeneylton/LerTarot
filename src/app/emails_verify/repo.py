@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from app.emails.models import EmailVerificationCode
+from app.emails_verify.models import EmailVerificationCode
 
 class EmailVerificationRepo:
     def __init__(self, session: Session) -> None:

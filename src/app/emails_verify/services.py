@@ -2,11 +2,11 @@
 from app.users.models import User
 from app.users.repo import UserRepo
 
-from app.emails.models import EmailVerificationCode
-from app.emails.repo import EmailVerificationRepo
+from app.emails_verify.models import EmailVerificationCode
+from app.emails_verify.repo import EmailVerificationRepo
 
-from app.security.hasher import Argon2Hasher
-from app.emails.sender import EmailSender
+from app.security.hasher import Argon2Hasher, hasher
+from app.emails_verify.sender import EmailSender, email_sender
 
 from app.core.exceptions import VerificationError
 
@@ -19,8 +19,8 @@ class EmailVerificationService:
         self, 
         email_code_repo:EmailVerificationRepo , 
         user_repo: UserRepo, 
-        hasher: Argon2Hasher,
-        email_sender: EmailSender, 
+        hasher: Argon2Hasher = hasher,
+        email_sender: EmailSender = email_sender, 
     ) -> None:
         self.email_code_repo = email_code_repo
         self.user_repo = user_repo

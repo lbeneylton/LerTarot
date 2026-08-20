@@ -8,11 +8,12 @@ from app.db.connection import get_session
 # User 
 from app.users.models import User
 from app.users.services import UserService
+from app.auth.permissions import get_current_user
 
 # Email
-from app.emails.schemas import VerifyEmailRequest
-from app.emails.services import EmailVerificationService
-from app.emails.sender import EmailSender
+from app.emails_verify.schemas import VerifyEmailRequest
+from app.emails_verify.services import EmailVerificationService
+from app.emails_verify.sender import EmailSender
 
 email_router = APIRouter(prefix="/email-verification", tags=["Email Verification"])
 

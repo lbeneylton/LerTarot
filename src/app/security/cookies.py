@@ -2,7 +2,9 @@ from datetime import timedelta
 
 from fastapi import Response
 
-from app.core.config import settings
+from app.core.config import get_settings
+
+settings = get_settings()
 
 
 ACCESS_PATH = "/"
@@ -60,13 +62,13 @@ class CookieManager:
 
 ACCESS_MAX_AGE = int(
     timedelta(
-        minutes=settings.access_expire_minutes
+        minutes=settings.auth.access_expire_minutes
     ).total_seconds()
 )
 
 REFRESH_MAX_AGE = int(
     timedelta(
-        days=settings.refresh_expire_days
+        days=settings.auth.refresh_expire_days
     ).total_seconds()
 )
 

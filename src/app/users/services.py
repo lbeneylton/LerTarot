@@ -17,7 +17,7 @@ from app.users.repo import UserRepo
 from app.users.schemas import UserCreate, TokensResponse
 
 # Email Sender e secrets
-from app.emails.sender import EmailSender
+from app.emails_verify.sender import EmailSender
 
 class UserService:
     def __init__(

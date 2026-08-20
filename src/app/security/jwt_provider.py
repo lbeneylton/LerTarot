@@ -8,19 +8,19 @@ from app.core.config import settings
 
 from app.core.exceptions import UnauthorizedError
 
-SECRET_KEY = settings.secret_key
-ALGORITHM = settings.algorithm
-REFRESH_EXPIRE_DAYS = settings.refresh_expire_days
-ACCESS_EXPIRE_MINUTES = settings.access_expire_minutes
+SECRET_KEY = settings.auth.secret_key
+ALGORITHM = settings.auth.algorithm
+REFRESH_EXPIRE_DAYS = settings.auth.refresh_expire_days
+ACCESS_EXPIRE_MINUTES = settings.auth.access_expire_minutes
 
 
 class JwtTokenService:
     def __init__(
         self, 
-        secret_key:str = SECRET_KEY, 
-        algorithm: str = ALGORITHM, 
-        access_exp_m: int = ACCESS_EXPIRE_MINUTES,
-        refresh_exp_d:int = REFRESH_EXPIRE_DAYS 
+        secret_key:str, 
+        algorithm: str, 
+        access_exp_m: int,
+        refresh_exp_d:int 
     ) -> None:
         self.secret_key = secret_key
         self.algorithm = algorithm
@@ -128,4 +128,9 @@ class JwtTokenService:
 
 
 
-jwt_token_service = JwtTokenService()
+jwt_provider = JwtTokenService(
+    secret_key=SECRET_KEY,
+    algorithm=ALGORITHM,
+    access_exp_m=ACCESS_EXPIRE_MINUTES,
+    refresh_exp_d=REFRESH_EXPIRE_DAYS
+)

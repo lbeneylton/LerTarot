@@ -27,3 +27,6 @@ class Argon2Hasher():
 
         except Exception:
             return False
+
+
+hasher = Argon2Hasher()

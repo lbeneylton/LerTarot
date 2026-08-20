@@ -58,7 +58,7 @@ class Catalog(Base):
         nullable=True
     )
     
-    __table_args__ ={
+    __table_args__ =(
         UniqueConstraint("user_id"),
         UniqueConstraint("slug")
-    }
+    )

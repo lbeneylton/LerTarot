@@ -19,7 +19,12 @@ from sqlalchemy import (
     func,
     Enum as SQLEnum
 )
-from sqlalchemy.orm import Mapped, mapped_column
+
+from sqlalchemy.orm import (
+    Mapped, 
+    mapped_column
+)
+
 from app.users.enums import UserType
 from app.db.base import Base
 
