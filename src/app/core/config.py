@@ -21,8 +21,17 @@ class EmailSettings(BaseModel):
 
 class DatabaseSettings(BaseModel):
     """Configurações de conexão com o banco de dados."""
-    url: str = "postgresql+psycopg://lucas@localhost:5432/ler_tarot"
 
+    url_dev: str
+    url_prod: str
+
+    @property
+    def url(self) -> str:
+        """Retorna a URL do banco conforme o ambiente."""
+        if settings.env.upper() == "PROD":
+            return f"postgresql+psycopg://{self.url_prod}"
+        
+        return f"postgresql+psycopg://{self.url_dev}"
 
 class AuthSettings(BaseModel):
     """Configurações relacionadas à autenticação."""
