@@ -131,15 +131,18 @@ class User(Base):
 
     __table_args__ = (
         Index(
-            "ix_users_email_active",
+            "uq_users_email_active",
             email,
+            unique=True,
             postgresql_where=deleted_at.is_(None),
         ),
         Index(
-            "ix_users_username_active",
+            "uq_users_username_active",
             username,
+            unique=True,
             postgresql_where=deleted_at.is_(None),
         ),
+        
     )
 
 
