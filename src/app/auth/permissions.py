@@ -5,13 +5,13 @@ from sqlalchemy.orm import Session
 
 from app.db.connection import get_session
 from app.users.models import User
-from app.security.jwt_provider import jwt_provider
+from app.security.jwt_provider import get_token_provider
 
 
 def get_current_user(
     access_token: str | None = Cookie(default=None),
     db: Session = Depends(get_session),
-    jwt_provider = jwt_provider
+    jwt_provider = Depends(get_token_provider)
 ) -> User:
 
     if not access_token:

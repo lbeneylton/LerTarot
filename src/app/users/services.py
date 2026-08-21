@@ -12,8 +12,10 @@ from app.core.exceptions import (
 # Tipos e modelos
 from app.users.models import User
 
-# Repo e schemas
-from app.users.repo import UserRepo
+# UOW
+from app.db.uow import SqlAlchemyUnitOfWork
+
+# Schemas
 from app.users.schemas import UserCreate, TokensResponse
 
 
@@ -24,11 +26,11 @@ from app.verify.services import VerificatorEmailService
 class CreateUserService:
     def __init__(
         self,
-        repo: UserRepo, 
+        uow: SqlAlchemyUnitOfWork, 
         hasher: Argon2Hasher, 
         email_verificator: VerificatorEmailService
     ) -> None:
-        self.repo = repo
+        self.uow = uow
         self.hasher = hasher
         self.email_verificator = email_verificator
 
@@ -43,30 +45,21 @@ class CreateUserService:
         # salvar User
         # enviar código
         # retornar User
-        
-        TODO diminuir acesso ao banco utilziando analise de constraints UNIQUE
         """
-        if self.repo.get_active_by_email(data.email):
-            raise ConflictError("Já existe um usuário com esse email")
+        with self.uow as uow:
 
-        if data.username:
-            if self.repo.get_active_by_username(data.username):
-                raise ConflictError("Username já cadastrado")
+            password_hash = self.hasher.hash(data.password)
 
-        password_hash = self.hasher.hash(data.password)
+            user = User(
+                email=data.email,
+                username=data.username,
+                password_hash=password_hash,
+                role=data.role.value
+            )
 
-        user = User(
-            email=data.email,
-            username=data.username,
-            password_hash=password_hash,
-            role=data.role.value
-        )
-
-        self.repo.save(user)
-        self.repo.session.flush()
-        self.repo.session.refresh(user)
-        
-        # SEND CODE EMAIL
+            uow.users.save(user)
+            
+    
         self.email_verificator.send_code(user)
 
         return user
@@ -74,14 +67,14 @@ class CreateUserService:
 
 
 
-class LoginUserService:
+class AuthenticationService:
     def __init__(
         self,
-        repo: UserRepo,
+        uow: SqlAlchemyUnitOfWork,
         hasher: Argon2Hasher,
         provider_token: JwtTokenService,
     ) -> None:
-        self.repo = repo
+        self.uow = uow
         self.hasher = hasher
         self.provider_token = provider_token
 
@@ -100,14 +93,10 @@ class LoginUserService:
             )
         )
     
-    def _revoke_token(self, user: User) -> User:
+    def _revoke_all_tokens(self, user: User) -> User:
         # Revoga todos os tokens anteriores
         user.token_version += 1
-
-        self.repo.save(user)
-        self.repo.session.flush()
-        self.repo.session.refresh(user)
-        
+        self.uow.users.save(user)
         return user
 
     def login(self, email_or_username: str, password: str) -> TokensResponse:
@@ -126,11 +115,11 @@ class LoginUserService:
         - senha esteja incorreta.
         """
         if "@" in email_or_username:
-            user = self.repo.get_active_by_email(
+            user = self.uow.users.get_active_by_email(
                 email_or_username
             )
         else:
-            user = self.repo.get_active_by_username(
+            user = self.uow.users.get_active_by_username(
                 email_or_username
             )
 
@@ -147,7 +136,7 @@ class LoginUserService:
         if not user.email_verified:
             raise VerificationError("Email não verificado")
 
-        user = self._revoke_token(user)
+        user = self._revoke_all_tokens(user)
         
         return self._generate_tokens(user)
                 
@@ -174,20 +163,24 @@ class LoginUserService:
         )
 
         user_id = int(payload["sub"])
+        
+        with self.uow as uow:
+            user = uow.users.get_active_by_id(user_id)
+            if user is None:
+                raise UnauthorizedError("Usuário não encontrado")
 
-        user = self.repo.get_active_by_id(user_id)
-        if not user:
-            raise UnauthorizedError("Usuário não encontrado")
+            # Compara a versão do token
+            if payload["token_version"] != user.token_version:
+                raise UnauthorizedError(
+                    "Token revogado"
+                )
 
+            user.token_version += 1
+            
+            uow.users.save(user)
+            uow.session.flush()
 
-        token_version = payload["token_version"]
-
-        if token_version != user.token_version:
-            raise UnauthorizedError(
-                "Token revogado"
-            )
-
-        return self._generate_tokens(user)
+            return self._generate_tokens(user)
 
     def logout(self, refresh_token: str | None) -> str:
         """
@@ -209,22 +202,23 @@ class LoginUserService:
         )
         
         user_id = int(payload["sub"])
-        user = self.repo.get_active_by_id(user_id)
+        user = self.uow.users.get_active_by_id(user_id)
         if not user:
             raise UnauthorizedError(
                 "Usuário não encontrado"
             )
 
             
-        self._revoke_token(user)
+        self._revoke_all_tokens(user)
         # APAGAR COOKIES
         return "Usuário deslogado"
 
         #
     
-    #
-    # Login Provider
-    #
+    
+    
+    
+class OAuthService:
     def login_google(
         self,
         google_token: str,
@@ -246,7 +240,7 @@ class LoginUserService:
         )
 
 
-class PasswordUserService:
+class PasswordService:
     def __init__(self) -> None:
         pass
 
@@ -257,7 +251,7 @@ class PasswordUserService:
     #     Gera um token temporário e envia para o e-mail.
     #     """
 
-    #     user = self.repo.get_active_by_email(email)
+    #     user = self.uow.get_active_by_email(email)
 
     #     # Não revela se o e-mail existe
     #     if user is None:
@@ -322,7 +316,7 @@ class PasswordUserService:
     #             token,
     #             item.token_hash,
     #         ):
-    #             user = self.repo.get_by_id(item.user_id)
+    #             user = self.uow.get_by_id(item.user_id)
 
     #             if user is None:
     #                 raise UnauthorizedError(
@@ -336,10 +330,10 @@ class PasswordUserService:
     #             # Token só pode ser utilizado uma vez
     #             item.used = True
 
-    #             self.repo.save(user)
+    #             self.uow.save(user)
     #             self.password_reset_repo.save(item)
 
-    #             self.repo.session.flush()
+    #             self.uow.session.flush()
 
     #             return None
 
@@ -374,9 +368,9 @@ class PasswordUserService:
     #         new_password
     #     )
 
-    #     self.repo.save(user)
-    #     self.repo.session.flush()
-    #     self.repo.session.refresh(user)
+    #     self.uow.save(user)
+    #     self.uow.session.flush()
+    #     self.uow.session.refresh(user)
         
     #     return "Senha alterada"
 
@@ -391,5 +385,5 @@ class PasswordUserService:
 # user_id
 # token_hash
 # expires_at
-# used
+# used_at
 # created_at

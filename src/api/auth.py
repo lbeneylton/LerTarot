@@ -12,8 +12,8 @@ from app.users.schemas import (
 from app.security.cookies import cookie_manager
 
 # Service e dependencies
-from app.users.services import UserService
-from app.users.dependencies import get_user_service
+from app.users.services import AuthenticationService, CreateUserService
+from app.users.dependencies import get_auth_service, get_create_service
 
 
 # Roteador
@@ -29,12 +29,12 @@ auth_router = APIRouter(prefix="/auth", tags=["Auth"])
 )
 def register(
     data : UserCreate,
-    response: Response,
-    service: UserService = Depends(get_user_service),
+    create_service: CreateUserService = Depends(get_create_service),
+    login_service: AuthenticationService = Depends(get_auth_service)
 ):
-    user = service.create_user(data)
+    user = create_service.create_user(data)
     
-    tokens = service.login(
+    tokens = login_service.login(
         email_or_username=str(user.email) or str(user.username),
         password=data.password,
     )
@@ -57,7 +57,7 @@ def register(
 def login(
     data: LoginRequest,
     response: Response,
-    service: UserService = Depends(get_user_service),
+    service: AuthenticationService = Depends(get_auth_service),
 ):
     tokens = service.login(
         data.email_or_username,
@@ -84,7 +84,7 @@ def login(
 def refresh(
     response: Response,
     refresh_token: str | None = Cookie(default=None),
-    service: UserService = Depends(get_user_service),
+    service: AuthenticationService = Depends(get_auth_service),
 ):
     tokens = service.refresh(refresh_token)
 
@@ -108,7 +108,7 @@ def refresh(
 def logout(
     response: Response,
     refresh_token: str | None = Cookie(default=None),
-    service: UserService = Depends(get_user_service),
+    service: AuthenticationService = Depends(get_auth_service),
 ):
     service.logout(refresh_token)
     cookie_manager.clear_auth_cookies(response)

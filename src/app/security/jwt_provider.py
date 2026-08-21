@@ -127,10 +127,10 @@ class JwtTokenService:
         return payload
 
 
-
-jwt_provider = JwtTokenService(
-    secret_key=SECRET_KEY,
-    algorithm=ALGORITHM,
-    access_exp_m=ACCESS_EXPIRE_MINUTES,
-    refresh_exp_d=REFRESH_EXPIRE_DAYS
-)
+def get_token_provider() -> JwtTokenService:
+    return JwtTokenService(
+        secret_key=SECRET_KEY,
+        algorithm=ALGORITHM,
+        access_exp_m=ACCESS_EXPIRE_MINUTES,
+        refresh_exp_d=REFRESH_EXPIRE_DAYS
+    )

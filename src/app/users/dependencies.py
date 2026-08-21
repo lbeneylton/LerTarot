@@ -1,22 +1,39 @@
 from fastapi import Depends
 
-# Session para tipagem
-from sqlalchemy.orm import Session
-from app.db.connection import get_session
+from app.users.services import (
+    CreateUserService,
+    AuthenticationService
+)
 
-from app.users.repo import UserRepo
-from app.users.services import UserService
+from api.dependencies import  get_uow, get_email_verificator
+from app.db.uow import SqlAlchemyUnitOfWork
 
-# hashes e Jwt
-from app.security.hasher import Argon2Hasher
-from app.security.jwt_provider import JwtTokenService
+from app.security.hasher import Argon2Hasher, get_hasher
+from app.security.jwt_provider import JwtTokenService, get_token_provider
+from app.verify.services import VerificatorEmailService
+
+def get_create_service(
+    uow: SqlAlchemyUnitOfWork= Depends(get_uow),
+    hasher: Argon2Hasher =Depends(get_hasher),
+    email_verificator: VerificatorEmailService= Depends(get_email_verificator)
+):
+    return CreateUserService(
+        uow,
+        hasher,
+        email_verificator
+    )
 
 
-def get_user_repo(session: Session = Depends(get_session)) -> UserRepo:
-    return UserRepo(session)
+def get_auth_service(
+    uow: SqlAlchemyUnitOfWork = Depends(get_uow),
+    hasher: Argon2Hasher = Depends(get_hasher),
+    provider_token: JwtTokenService = Depends(
+        get_token_provider
+    ),
+) -> AuthenticationService:
 
-
-def get_user_service(repo: UserRepo = Depends(get_user_repo)) -> UserService:
-    hasher = Argon2Hasher()
-    token_provider = JwtTokenService()
-    return UserService(repo, hasher, token_provider)
+    return AuthenticationService(
+        uow=uow,
+        hasher=hasher,
+        provider_token=provider_token,
+    )

@@ -7,23 +7,19 @@ from app.db.contract import SessionContract
 
 
 class SqlAlchemyUnitOfWork:
-    def __init__(self, session_factory: SessionContract):
-        self.session_factory = session_factory
-
-    def __enter__(self):
-        self.session = self.session_factory()
+    def __init__(self, session: SessionContract):
+        self.session = session
 
         # Adicionar futuros repos
-        self.users = UserRepo(self.session)
-        self.email_codes = CodeEmailRepo(self.session)
-
+        self.users = UserRepo(session)
+        self.email_codes = CodeEmailRepo(session)
+        
+    def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        try:
-            if exc_type:
-                self.session.rollback()
-            else:
-                self.session.commit()
-        finally:
-            self.session.close()
+        if exc_type:
+            self.session.rollback()
+        else:
+            self.session.commit()
+      

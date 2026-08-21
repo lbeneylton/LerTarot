@@ -1,9 +1,9 @@
 
 from app.users.models import User
-from app.users.repo import UserRepo
-
 from app.verify.models import CodeEmailVerificator
-from app.verify.repo import VerificationEmailRepo
+
+
+from app.db.uow import SqlAlchemyUnitOfWork
 
 from app.security.hasher import Argon2Hasher
 from app.verify.sender import EmailSender
@@ -17,8 +17,7 @@ import secrets
 class VerificatorEmailService:
     def __init__(
         self, 
-        email_code_repo:VerificationEmailRepo , 
-        user_repo: UserRepo, 
+        uow: SqlAlchemyUnitOfWork,
         hasher: Argon2Hasher,
         email_sender: EmailSender, 
     ) -> None:        
