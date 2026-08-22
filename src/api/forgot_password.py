@@ -30,17 +30,6 @@ def request_recovery(
     )
 
 
-@forgot_router.post("/verify-token")
-def verify_reset_token(
-    data: VerifyTokenRequest,
-    service: PasswordRecoveryUseCase = Depends(get_password_recovery_use_case),
-):
-    service.verify_token(data.token)
-
-    return RecoveryResponse(
-        message="Token válido"
-    )
-
 
 @forgot_router.post("/reset-password")
 def reset_password(

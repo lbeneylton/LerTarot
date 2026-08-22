@@ -139,54 +139,57 @@ class PasswordRecoveryUseCase:
                 # Token de recuperação só pode ser usado uma vez.
                 recovery.used_at = datetime.now(timezone.utc)
 
-                return
+                return 
 
             raise UnauthorizedError(
                 "Token de recuperação inválido ou expirado"
             )
 
-    def change_password(
-        self,
-        user: User,
-        current_password: str,
-        new_password: str,
-    ) -> str:
-        """
-        Altera a senha de um usuário autenticado.
 
-        Diferentemente do reset_password(), aqui o usuário
-        precisa informar a senha atual.
-        """
+    # Inuteis
 
-        if not self.hasher.verify_hash(
-            current_password,
-            user.password_hash,
-        ):
-            raise UnauthorizedError(
-                "Senha atual inválida"
-            )
+    # def change_password(
+    #     self,
+    #     user: User,
+    #     current_password: str,
+    #     new_password: str,
+    # ) -> str:
+    #     """
+    #     Altera a senha de um usuário autenticado.
 
-        if current_password == new_password:
-            raise ConflictError(
-                "A nova senha deve ser diferente da senha atual"
-            )
+    #     Diferentemente do reset_password(), aqui o usuário
+    #     precisa informar a senha atual.
+    #     """
 
-        with self.uow as uow:
-            user.password_hash = self.hasher.hash(
-                new_password
-            )
+    #     if not self.hasher.verify_hash(
+    #         current_password,
+    #         user.password_hash,
+    #     ):
+    #         raise UnauthorizedError(
+    #             "Senha atual inválida"
+    #         )
 
-            uow.users.save(user)
+    #     if current_password == new_password:
+    #         raise ConflictError(
+    #             "A nova senha deve ser diferente da senha atual"
+    #         )
 
-            # Opcional: invalida tokens de recuperação
-            # que ainda estejam ativos.
-            uow.password_recovery.invalidate_user_tokens(
-                user.user_id
-            )
+    #     with self.uow as uow:
+    #         user.password_hash = self.hasher.hash(
+    #             new_password
+    #         )
 
-        return "Senha alterada"
+    #         uow.users.save(user)
 
-    def verify_token(self, token: str) -> bool:
+    #         # Opcional: invalida tokens de recuperação
+    #         # que ainda estejam ativos.
+    #         uow.password_recovery.invalidate_user_tokens(
+    #             user.user_id
+    #         )
+
+    #     return "Senha alterada"
+
+    # def verify_token(self, token: str) -> bool:
         """
         Valida o token de recuperação.
 
