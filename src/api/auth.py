@@ -29,6 +29,7 @@ auth_router = APIRouter(prefix="/auth", tags=["Auth"])
 )
 def register(
     data : UserCreate,
+    response: Response,
     create_service: CreateUserService = Depends(get_create_service),
     login_service: AuthenticationService = Depends(get_auth_service)
 ):
