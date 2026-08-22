@@ -2,6 +2,7 @@
 
 from app.users.repo import UserRepo
 from app.verify.repo import CodeEmailRepo
+from emails.repo import EmailMessageRepo
 
 from app.db.contract import SessionContract
 
@@ -13,6 +14,7 @@ class SqlAlchemyUnitOfWork:
         # Adicionar futuros repos
         self.users = UserRepo(session)
         self.email_codes = CodeEmailRepo(session)
+        self.emails = EmailMessageRepo(session)
         
     def __enter__(self):
         return self
