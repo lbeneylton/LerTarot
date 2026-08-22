@@ -4,11 +4,10 @@ from app.security.hasher import Argon2Hasher
 # Erros
 from app.core.exceptions import (
     UnauthorizedError,
-    ConflictError,
-    NotFoundError
+    ConflictError
 )
 
-# Tipos e modelos
+# Modelos
 from app.domains.users.models import User
 from app.domains.users.values.password_recovery.models import PasswordRecovery
 
@@ -24,20 +23,7 @@ import secrets
 from datetime import datetime, timezone, timedelta
 
 
-from datetime import datetime, timedelta, timezone
-import secrets
-
-from app.core.exceptions import (
-    ConflictError,
-    UnauthorizedError,
-)
-
-from app.db.uow import SqlAlchemyUnitOfWork
-from app.domains.users.models import User
-from app.security.hasher import Argon2Hasher
-
-
-class PasswordService:
+class PasswordRecoveryUseCase:
     def __init__(
         self,
         uow: SqlAlchemyUnitOfWork,
@@ -66,10 +52,11 @@ class PasswordService:
         with self.uow as uow:
             user = uow.users.get_active_by_email(email)
 
+            # Não revela se o e-mail existe.
             if user is None:
                 return
 
-            # Invalida tokens anteriores do usuário.
+            # Invalida recuperações anteriores.
             uow.password_recovery.invalidate_user_tokens(
                 user.user_id
             )
@@ -77,13 +64,13 @@ class PasswordService:
             # Token puro.
             token = secrets.token_urlsafe(32)
 
-            # Token válido por 15 minutos.
+            # Ecpitra em 15 minutos.
             expires_at = (
                 datetime.now(timezone.utc)
                 + timedelta(minutes=15)
             )
 
-            # Nunca salvar o token puro no banco.
+            # Apenas o hash vai para o banco.
             token_hash = self.hasher.hash(token)
 
             recovery = PasswordRecovery(
@@ -94,12 +81,10 @@ class PasswordService:
 
             uow.password_recovery.save(recovery)
 
-            # Garante que o recovery seja enviado ao banco
-            # antes do envio do e-mail.
+            # Garante persistência antes do envio.
             uow.session.flush()
 
-            # O usuário precisa receber o TOKEN PURO.
-            # O banco possui somente o hash.
+            # O usuário recebe o token puro.
             self.email_sender.send_link(
                 user,
                 token,
@@ -200,3 +185,53 @@ class PasswordService:
             )
 
         return "Senha alterada"
+
+    def verify_token(self, token: str) -> bool:
+        """
+        Valida o token de recuperação.
+
+        Não altera a senha.
+        Apenas confirma que o token:
+        - existe;
+        - não expirou;
+        - não foi utilizado;
+        - pertence a um usuário ativo.
+        """
+
+        with self.uow as uow:
+
+            recoveries = (
+                uow.password_recovery.get_active_tokens()
+            )
+
+            now = datetime.now(timezone.utc)
+
+            for recovery in recoveries:
+
+                # Token já expirado.
+                if recovery.expires_at <= now:
+                    continue
+
+                # Confere token puro contra hash.
+                if not self.hasher.verify_hash(
+                    token,
+                    recovery.token_hash,
+                ):
+                    continue
+
+                # Confere se o usuário ainda existe.
+                user = uow.users.get_active_by_id(
+                    recovery.user_id
+                )
+
+                if user is None:
+                    raise UnauthorizedError(
+                        "Token inválido"
+                    )
+
+                # Token válido.
+                return True
+
+            raise UnauthorizedError(
+                "Token de recuperação inválido ou expirado"
+            )

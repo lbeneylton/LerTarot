@@ -30,3 +30,20 @@ class TokensResponse(BaseModel):
 class AuthResponse(BaseModel):
     message: str
     model_config = ConfigDict(from_attributes=True)
+    
+    
+    
+class RecoveryPasswordRequest(BaseModel):
+    email: EmailStr
+    
+
+class RecoveryResponse(AuthResponse):
+    pass
+
+
+class VerifyTokenRequest(BaseModel):
+    token: str
+    
+class ResetPasswordRequest(AuthResponse):
+    token: str
+    new_password: str

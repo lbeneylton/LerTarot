@@ -11,6 +11,7 @@ from app.core.handler import app_exception_handler
 
 # Rotas
 from api.auth import auth_router
+from api.forgot_password import forgot_router
 # from api.email_verify import email_router
 # from api.email_sender import email_sender
 
@@ -56,6 +57,7 @@ app.add_middleware(
 app.add_exception_handler(AppException, app_exception_handler)  # type: ignore
 
 app.include_router(auth_router)
+app.include_router(forgot_router)
 # app.include_router(email_router)
 # app.include_router(email_sender)
 
