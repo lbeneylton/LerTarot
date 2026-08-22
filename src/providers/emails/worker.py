@@ -4,8 +4,8 @@ from datetime import datetime, timezone, timedelta
 
 from app.db.session import SessionLocal
 from app.db.uow import SqlAlchemyUnitOfWork
-from emails.interface import get_sender
-from emails.model import MessageStatus
+from providers.emails.interface import get_sender
+from providers.emails.model import MessageStatus
 
 logger = logging.getLogger("emails.worker")
 

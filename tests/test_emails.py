@@ -5,10 +5,10 @@ from fastapi import status
 from app.core.config import settings
 from app.db.session import SessionLocal
 from app.db.uow import SqlAlchemyUnitOfWork
-from emails.model import EmailMessage, MessageStatus
-from emails.services import EmailService
-from emails.schemas import MessageRequest
-from emails.worker import EmailWorker
+from providers.emails.model import EmailMessage, MessageStatus
+from providers.emails.services import EmailService
+from providers.emails.schemas import MessageRequest
+from providers.emails.worker import EmailWorker
 
 
 def test_enqueue_email_and_idempotency() -> None:

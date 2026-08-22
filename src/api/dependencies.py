@@ -7,7 +7,7 @@ from app.db.uow import SqlAlchemyUnitOfWork
 
 from app.security.hasher import Argon2Hasher, get_hasher
 from app.domains.verify.services import CodeEmailService
-from emails.interface import EmailSender, get_sender
+from providers.emails.interface import EmailSender, get_sender
 
 
 def get_uow(
@@ -40,7 +40,7 @@ def verify_internal_token(x_internal_token: str = Header(...)) -> str:
     return x_internal_token
 
 
-from emails.services import EmailService
+from providers.emails.services import EmailService
 
 def get_email_service(uow: SqlAlchemyUnitOfWork = Depends(get_uow)) -> EmailService:
     return EmailService(uow)

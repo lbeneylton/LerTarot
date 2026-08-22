@@ -5,7 +5,7 @@ from app.auth.permissions import get_current_user
 from app.domains.verify.schemas import VerifyEmailRequest
 from app.domains.verify.services import CodeEmailService
 from api.dependencies import get_email_verificator
-from emails.worker import email_worker
+from providers.emails.worker import email_worker
 
 email_router = APIRouter(prefix="/email-verification", tags=["Email Verification"])
 

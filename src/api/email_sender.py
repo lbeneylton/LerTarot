@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, Header, BackgroundTasks, status, HTTPException
 
 from api.dependencies import get_email_service, verify_internal_token
-from emails.services import EmailService
-from emails.schemas import MessageRequest
-from emails.worker import email_worker
+from providers.emails.services import EmailService
+from providers.emails.schemas import MessageRequest
+from providers.emails.worker import email_worker
 
 # O roteador é protegido a nível de roteador:
 # Todas as rotas neste arquivo exigem o header X-Internal-Token válido.

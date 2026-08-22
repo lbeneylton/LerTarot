@@ -7,7 +7,7 @@ from app.db.uow import SqlAlchemyUnitOfWork
 from app.security.hasher import Argon2Hasher
 from app.core.exceptions import VerificationError
 
-from emails.model import EmailMessage, MessageStatus
+from providers.emails.model import EmailMessage, MessageStatus
 
 
 class CodeEmailService:

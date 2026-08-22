@@ -15,7 +15,7 @@ from api.email_verify import email_router
 from api.email_sender import email_sender
 
 # Worker
-from emails.worker import email_worker
+from providers.emails.worker import email_worker
 
 
 @asynccontextmanager
