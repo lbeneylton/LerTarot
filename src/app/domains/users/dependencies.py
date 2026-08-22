@@ -1,6 +1,6 @@
 from fastapi import Depends
 
-from app.domains.users.services import (
+from app.domains.users.use_cases import (
     CreateUserService,
     AuthenticationService
 )

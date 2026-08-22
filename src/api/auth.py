@@ -12,7 +12,7 @@ from app.domains.users.schemas import (
 from app.security.cookies import cookie_manager
 
 # Service e dependencies
-from app.domains.users.services import AuthenticationService, CreateUserService
+from app.domains.users.use_cases import CreateUserService, AuthenticationService
 from app.domains.users.dependencies import get_auth_service, get_create_service
 
 
