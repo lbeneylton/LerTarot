@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from app.users.models import User
+    from app.domains.users.models import User
 
 # Tipos
 from datetime import datetime

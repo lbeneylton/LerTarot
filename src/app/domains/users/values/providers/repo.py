@@ -1,15 +1,15 @@
-from datetime import datetime, timezone
-from uuid import UUID
+from typing import Sequence
 
-from sqlalchemy.orm import Session
+from datetime import datetime, timezone
+
 from sqlalchemy import select
 
-from app.providers.models import Provider
-from typing import Sequence
+from app.db.contract import SessionContract
+from app.domains.users.values.providers import Provider
 
 
 class ProviderRepository:
-    def __init__(self, session: Session) -> None:
+    def __init__(self, session: SessionContract) -> None:
         self.session = session
 
     # Query base apenas para provedores ativos
@@ -22,7 +22,7 @@ class ProviderRepository:
         return user
 
     # Buscar provedor ativo por UUID
-    def get_active_by_id(self, provider_id: UUID) -> Provider | None:
+    def get_active_by_id(self, provider_id: int) -> Provider | None:
         result = self.session.execute(
             self._active_only().where(Provider.provider_id == provider_id)
         ).scalar_one_or_none()
@@ -35,14 +35,7 @@ class ProviderRepository:
         ).scalar_one_or_none()
         return result
 
-    # Atualização genérica (merge/add)
-    # def update(self, user: Provider) -> Provider:
-    #     self.session.add(user)
-    #     return user
-
-    # Soft delete
-
-    def delete(self, user_id: UUID) -> Provider | None:
+    def delete(self, user_id: int) -> Provider | None:
         user = self.get_active_by_id(user_id)
         if not user:
             return None
