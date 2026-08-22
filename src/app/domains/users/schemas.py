@@ -1,7 +1,7 @@
 from typing import Optional
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
-from app.users.enums import UserType
+from app.domains.users.enums import UserType
 
 
 class UserCreate(BaseModel):

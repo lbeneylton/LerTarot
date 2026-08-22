@@ -10,17 +10,17 @@ from app.core.exceptions import (
 )
 
 # Tipos e modelos
-from app.users.models import User
+from app.domains.users.models import User
 
 # UOW
 from app.db.uow import SqlAlchemyUnitOfWork
 
 # Schemas
-from app.users.schemas import UserCreate, TokensResponse
+from app.domains.users.schemas import UserCreate, TokensResponse
 
 
 # Verificador de email
-from app.verify.services import CodeEmailService
+from app.domains.verify.services import CodeEmailService
 
 
 class CreateUserService:

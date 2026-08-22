@@ -1,5 +1,5 @@
 import logging
-from app.providers.sender.interface import EmailSender
+from app.sender.interface import EmailSender
 
 logger = logging.getLogger("app.email_mock")
 

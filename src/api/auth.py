@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Response, Cookie, Depends, status
 
 # Schemas
-from app.users.schemas import (
+from app.domains.users.schemas import (
     UserCreate,
     LoginRequest,
     AuthResponse
@@ -12,8 +12,8 @@ from app.users.schemas import (
 from app.security.cookies import cookie_manager
 
 # Service e dependencies
-from app.users.services import AuthenticationService, CreateUserService
-from app.users.dependencies import get_auth_service, get_create_service
+from app.domains.users.services import AuthenticationService, CreateUserService
+from app.domains.users.dependencies import get_auth_service, get_create_service
 
 
 # Roteador

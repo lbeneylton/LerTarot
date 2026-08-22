@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 from app.db.contract import SessionContract
 
-from app.users.models import User
+from app.domains.users.models import User
 from typing import Sequence
 
 

@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from sqlalchemy import select, update
 from app.db.contract import SessionContract
-from app.verify.models import CodeEmail
+from app.domains.verify.models import CodeEmail
 
 class CodeEmailRepo:
     def __init__(self, session: SessionContract) -> None:

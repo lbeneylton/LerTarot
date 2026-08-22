@@ -1,6 +1,6 @@
-from emails.interface import EmailSender
-from emails.mock import MockEmailSender
-from emails.smtp import SMTPEmailSender
+from app.sender.interface import EmailSender
+from app.sender.mock import MockEmailSender
+from app.sender.smtp import SMTPEmailSender
 from app.core.config import settings
 
 def get_sender() -> EmailSender:

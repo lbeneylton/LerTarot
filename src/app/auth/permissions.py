@@ -4,7 +4,7 @@ from fastapi import Cookie, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.db.connection import get_session
-from app.users.models import User
+from app.domains.users.models import User
 from app.security.jwt_provider import get_token_provider
 
 

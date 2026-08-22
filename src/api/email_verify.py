@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, BackgroundTasks, status
 
-from app.users.models import User
+from app.domains.users.models import User
 from app.auth.permissions import get_current_user
-from app.verify.schemas import VerifyEmailRequest
-from app.verify.services import VerificatorEmailService
+from app.domains.verify.schemas import VerifyEmailRequest
+from app.domains.verify.services import CodeEmailService
 from api.dependencies import get_email_verificator
 from emails.worker import email_worker
 
@@ -14,7 +14,7 @@ email_router = APIRouter(prefix="/email-verification", tags=["Email Verification
 def send_verification_email(
     background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
-    email_verificator: VerificatorEmailService = Depends(get_email_verificator),
+    email_verificator: CodeEmailService = Depends(get_email_verificator),
 ) -> dict:
     """Gera e envia o código de verificação para o e-mail do usuário em segundo plano (outbox)."""
     email_verificator.send_code(current_user)
@@ -31,7 +31,7 @@ def send_verification_email(
 def verify_email(
     data: VerifyEmailRequest,
     current_user: User = Depends(get_current_user),
-    email_verificator: VerificatorEmailService = Depends(get_email_verificator),
+    email_verificator: CodeEmailService = Depends(get_email_verificator),
 ) -> dict:
     """Valida o código de verificação enviado pelo usuário."""
     email_verificator.verify_code(current_user, data.code)

@@ -6,7 +6,7 @@ from app.db.uow import SqlAlchemyUnitOfWork
 
 
 from app.security.hasher import Argon2Hasher, get_hasher
-from app.verify.services import CodeEmailService
+from app.domains.verify.services import CodeEmailService
 from emails.interface import EmailSender, get_sender
 
 

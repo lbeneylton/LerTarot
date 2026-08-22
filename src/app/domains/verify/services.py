@@ -1,8 +1,8 @@
 from datetime import datetime, timezone, timedelta
 import secrets
 
-from app.users.models import User
-from app.verify.models import CodeEmail
+from app.domains.users.models import User
+from app.domains.verify.models import CodeEmail
 from app.db.uow import SqlAlchemyUnitOfWork
 from app.security.hasher import Argon2Hasher
 from app.core.exceptions import VerificationError

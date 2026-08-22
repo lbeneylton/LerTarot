@@ -2,7 +2,7 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from app.providers.models import UserProvider
+    from app.domains.providers.models import UserProvider
 
 
 from enum import Enum
@@ -25,7 +25,7 @@ from sqlalchemy.orm import (
     mapped_column
 )
 
-from app.users.enums import UserType
+from app.domains.users.enums import UserType
 from app.db.base import Base
 
 
