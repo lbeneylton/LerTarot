@@ -6,10 +6,12 @@ from app.domains.verify.models import CodeEmail
 class CodeEmailRepo:
     def __init__(self, session: SessionContract) -> None:
         self.session = session
-
+        
+        
     def save(self, verification: CodeEmail) -> CodeEmail:
         self.session.add(verification)
         return verification
+
 
     def invalidate_user_codes(self, user_id: int) -> None:
         now = datetime.now(timezone.utc)
