@@ -2,7 +2,7 @@ from datetime import datetime, timezone, timedelta
 import secrets
 
 from app.users.models import User
-from app.verify.models import CodeEmailVerificator
+from app.verify.models import CodeEmail
 from app.db.uow import SqlAlchemyUnitOfWork
 from app.security.hasher import Argon2Hasher
 from app.core.exceptions import VerificationError
@@ -10,7 +10,7 @@ from app.core.exceptions import VerificationError
 from emails.model import EmailMessage, MessageStatus
 
 
-class VerificatorEmailService:
+class CodeEmailService:
     def __init__(
         self, 
         uow: SqlAlchemyUnitOfWork,
@@ -26,7 +26,7 @@ class VerificatorEmailService:
         if user.email_verified:
             raise VerificationError("Email já verificado")
 
-    def _validar_verificacao(self, verification: CodeEmailVerificator) -> None:
+    def _validar_verificacao(self, verification: CodeEmail) -> None:
             
         # Verifica se o código já foi utilizado   
         if verification.used_at is not None:
@@ -54,8 +54,8 @@ class VerificatorEmailService:
             # Gera um prazo (15 minutos)
             expires_at = datetime.now(timezone.utc) + timedelta(minutes=15)
 
-            # Criar um CodeEmailVerificator
-            verification = CodeEmailVerificator(
+            # Criar um CodeEmail
+            verification = CodeEmail(
                 user_id=user.user_id,
                 code_hash=code_hash,
                 expires_at=expires_at,

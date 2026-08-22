@@ -20,7 +20,7 @@ from app.users.schemas import UserCreate, TokensResponse
 
 
 # Verificador de email
-from app.verify.services import VerificatorEmailService
+from app.verify.services import CodeEmailService
 
 
 class CreateUserService:
@@ -28,7 +28,7 @@ class CreateUserService:
         self,
         uow: SqlAlchemyUnitOfWork, 
         hasher: Argon2Hasher, 
-        email_verificator: VerificatorEmailService
+        email_verificator: CodeEmailService
     ) -> None:
         self.uow = uow
         self.hasher = hasher

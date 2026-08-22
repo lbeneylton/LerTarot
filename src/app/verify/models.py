@@ -23,7 +23,7 @@ from sqlalchemy.orm import(
 from app.db.base import Base
 
 
-class CodeEmailVerificator(Base):
+class CodeEmail(Base):
     __tablename__ = "codes_email_verifications"
     
     code_id:  Mapped[int] = mapped_column(
