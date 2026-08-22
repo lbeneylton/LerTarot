@@ -16,6 +16,8 @@ class EmailSettings(BaseModel):
     host: str
     port: str
     
+    timeout: int
+    
     credentials: CredentialsSettings
 
 
