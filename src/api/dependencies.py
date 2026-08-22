@@ -6,7 +6,7 @@ from app.db.uow import SqlAlchemyUnitOfWork
 
 
 from app.security.hasher import Argon2Hasher, get_hasher
-from app.verify.services import VerificatorEmailService
+from app.verify.services import CodeEmailService
 from emails.interface import EmailSender, get_sender
 
 
@@ -20,8 +20,8 @@ def get_uow(
 def get_email_verificator(
     uow: SqlAlchemyUnitOfWork = Depends(get_uow),
     hasher: Argon2Hasher = Depends(get_hasher)
-) -> VerificatorEmailService:
-    return VerificatorEmailService(
+) -> CodeEmailService:
+    return CodeEmailService(
         uow,
         hasher
     )
