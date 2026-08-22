@@ -54,6 +54,7 @@ class Settings(BaseSettings):
     """Configurações gerais da aplicação."""
 
     env: str = "DEV"
+    internal_api_key: str = "default_internal_token_secret"
 
     database: DatabaseSettings 
     auth: AuthSettings 
