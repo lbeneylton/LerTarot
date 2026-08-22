@@ -2,7 +2,7 @@
 
 from app.domains.users.repo import UserRepo
 from app.domains.verify.repo import CodeEmailRepo
-from providers.emails.repo import EmailMessageRepo
+from app.domains.emails.repo import EmailMessageRepo
 
 from app.db.contract import SessionContract
 

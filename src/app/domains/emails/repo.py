@@ -3,7 +3,7 @@ from typing import Sequence
 from sqlalchemy import select
 
 from app.db.contract import SessionContract
-from providers.emails.model import EmailMessage, MessageStatus
+from app.domains.emails.model import EmailMessage, MessageStatus
 
 
 class EmailMessageRepo:

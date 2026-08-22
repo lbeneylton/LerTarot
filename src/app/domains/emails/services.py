@@ -3,8 +3,8 @@ import logging
 from jinja2 import Environment, FileSystemLoader
 
 from app.db.uow import SqlAlchemyUnitOfWork
-from providers.emails.model import EmailMessage, MessageStatus
-from providers.emails.schemas import MessageRequest
+from app.domains.emails.model import EmailMessage, MessageStatus
+from app.domains.emails.schemas import MessageRequest
 
 logger = logging.getLogger("emails.service")
 TEMPLATES_DIR = os.path.join(os.path.dirname(__file__), "templates")
