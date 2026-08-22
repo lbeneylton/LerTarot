@@ -107,3 +107,7 @@ class CodeEmailService:
             uow.email_codes.save(verification)
 
             return user
+
+
+    def send_link(self, user: User, code: str):
+        pass

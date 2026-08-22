@@ -5,10 +5,10 @@ from datetime import datetime, timezone
 from sqlalchemy import select
 
 from app.db.contract import SessionContract
-from app.domains.users.values.providers import Provider
+from app.domains.users.values.providers.models import Provider
 
 
-class ProviderRepository:
+class ProviderRepo:
     def __init__(self, session: SessionContract) -> None:
         self.session = session
 

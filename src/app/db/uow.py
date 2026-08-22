@@ -3,6 +3,8 @@
 from app.domains.users.repo import UserRepo
 from app.domains.verify.repo import CodeEmailRepo
 from app.domains.emails.repo import EmailMessageRepo
+from app.domains.users.values.providers.repo import ProviderRepo
+from app.domains.users.values.password_recovery.repo import PasswordRecoveryRepo
 
 from app.db.contract import SessionContract
 
@@ -16,7 +18,10 @@ class SqlAlchemyUnitOfWork:
         self.email_codes = CodeEmailRepo(session)
         self.emails = EmailMessageRepo(session)
         
-    def __enter__(self):
+        self.providers = ProviderRepo(session)
+        self.password_recovery = PasswordRecoveryRepo(session)
+        
+    def __enter__(self)  -> "SqlAlchemyUnitOfWork":
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):

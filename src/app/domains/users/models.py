@@ -2,7 +2,7 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from app.domains.providers.models import UserProvider
+    from app.domains.users.values.providers.models import UserProvider
 
 
 from enum import Enum

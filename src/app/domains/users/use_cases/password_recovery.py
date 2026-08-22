@@ -10,6 +10,7 @@ from app.core.exceptions import (
 
 # Tipos e modelos
 from app.domains.users.models import User
+from app.domains.users.values.password_recovery.models import PasswordRecovery
 
 # UOW
 from app.db.uow import SqlAlchemyUnitOfWork
@@ -23,64 +24,87 @@ import secrets
 from datetime import datetime, timezone, timedelta
 
 
-   
+from datetime import datetime, timedelta, timezone
+import secrets
+
+from app.core.exceptions import (
+    ConflictError,
+    UnauthorizedError,
+)
+
+from app.db.uow import SqlAlchemyUnitOfWork
+from app.domains.users.models import User
+from app.security.hasher import Argon2Hasher
+
 
 class PasswordService:
-    def __init__(self, uow, hasher: Argon2Hasher, email_sender: CodeEmailService) -> None:
+    def __init__(
+        self,
+        uow: SqlAlchemyUnitOfWork,
+        hasher: Argon2Hasher,
+        email_sender: CodeEmailService,
+    ) -> None:
         self.uow = uow
         self.hasher = hasher
         self.email_sender = email_sender
-        
 
     def recovery_password(self, email: str) -> None:
         """
         Solicita recuperação de senha.
 
-        Gera um token temporário e envia para o e-mail.
+        Se o usuário existir:
+        - invalida tokens anteriores;
+        - gera um novo token;
+        - salva apenas o hash do token;
+        - define validade de 15 minutos;
+        - envia o token por e-mail.
+
+        Se o usuário não existir, retorna normalmente para
+        não revelar se o e-mail está cadastrado.
         """
 
         with self.uow as uow:
-            # Verifica se existe um usuario para esse email
             user = uow.users.get_active_by_email(email)
 
-            # Usuário não encontrado
             if user is None:
-                raise NotFoundError("Usuário não encontrado")
+                return
 
-            # Invalida tokens anteriores
-            uow.password_reset_repo.invalidate_user_tokens(user.id)
+            # Invalida tokens anteriores do usuário.
+            uow.password_recovery.invalidate_user_tokens(
+                user.user_id
+            )
 
-            # Gera token seguro
+            # Token puro.
             token = secrets.token_urlsafe(32)
 
-            # Validade de 15 minutos
+            # Token válido por 15 minutos.
             expires_at = (
                 datetime.now(timezone.utc)
                 + timedelta(minutes=15)
             )
 
-            # Não salvar o token puro
+            # Nunca salvar o token puro no banco.
             token_hash = self.hasher.hash(token)
 
-            uow.password_reset_repo.create(
-                user_id=user.id,
+            recovery = PasswordRecovery(
+                user_id=user.user_id,
                 token_hash=token_hash,
                 expires_at=expires_at,
-                used=False,
             )
 
-            uow.password_reset_repo.session.flush()
+            uow.password_recovery.save(recovery)
 
-            # Envia o token/link por e-mail
-            self.email_sender.send_code(
-                user
+            # Garante que o recovery seja enviado ao banco
+            # antes do envio do e-mail.
+            uow.session.flush()
+
+            # O usuário precisa receber o TOKEN PURO.
+            # O banco possui somente o hash.
+            self.email_sender.send_link(
+                user,
+                token,
             )
 
-            return None
-
-    #
-    # Password
-    #
     def reset_password(
         self,
         token: str,
@@ -88,47 +112,53 @@ class PasswordService:
     ) -> None:
         """
         Redefine a senha usando um token de recuperação.
+
+        O token:
+        - precisa existir;
+        - não pode estar expirado;
+        - não pode ter sido utilizado;
+        - precisa corresponder ao hash salvo.
+
+        Após o uso, o token é invalidado.
         """
 
-        reset = self.uow.password_reset_repo.get_active_tokens()
+        with self.uow as uow:
+            recoveries = (
+                uow.password_recovery.get_active_tokens()
+            )
 
-        now = datetime.now(timezone.utc)
+            for recovery in recoveries:
 
-        for item in reset:
-            if item.used:
-                continue
+                # Verifica se o token recebido corresponde
+                # ao hash armazenado.
+                if not self.hasher.verify_hash(
+                    token,
+                    recovery.token_hash,
+                ):
+                    continue
 
-            if item.expires_at <= now:
-                continue
-
-            if self.hasher.verify_hash(
-                token,
-                item.token_hash,
-            ):
-                user = self.uow.get_by_id(item.user_id)
+                user = uow.users.get_active_by_id(
+                    recovery.user_id
+                )
 
                 if user is None:
                     raise UnauthorizedError(
                         "Token inválido"
                     )
 
-                user.password_hash = (
-                    self.hasher.hash(new_password)
+                # Define a nova senha.
+                user.password_hash = self.hasher.hash(
+                    new_password
                 )
 
-                # Token só pode ser utilizado uma vez
-                item.used = True
+                # Token de recuperação só pode ser usado uma vez.
+                recovery.used_at = datetime.now(timezone.utc)
 
-                self.uow.save(user)
-                self.uow.password_reset_repo.save(item)
+                return
 
-                self.uow.session.flush()
-
-                return None
-
-        raise UnauthorizedError(
-            "Token de recuperação inválido ou expirado"
-        )
+            raise UnauthorizedError(
+                "Token de recuperação inválido ou expirado"
+            )
 
     def change_password(
         self,
@@ -138,6 +168,9 @@ class PasswordService:
     ) -> str:
         """
         Altera a senha de um usuário autenticado.
+
+        Diferentemente do reset_password(), aqui o usuário
+        precisa informar a senha atual.
         """
 
         if not self.hasher.verify_hash(
@@ -153,26 +186,17 @@ class PasswordService:
                 "A nova senha deve ser diferente da senha atual"
             )
 
-        user.password_hash = self.hasher.hash(
-            new_password
-        )
+        with self.uow as uow:
+            user.password_hash = self.hasher.hash(
+                new_password
+            )
 
-        self.uow.save(user)
-        self.uow.session.flush()
-        self.uow.session.refresh(user)
-        
+            uow.users.save(user)
+
+            # Opcional: invalida tokens de recuperação
+            # que ainda estejam ativos.
+            uow.password_recovery.invalidate_user_tokens(
+                user.user_id
+            )
+
         return "Senha alterada"
-
-
- 
- 
- 
- 
-#  PasswordResetToken
-# ------------------
-# id
-# user_id
-# token_hash
-# expires_at
-# used_at
-# created_at
