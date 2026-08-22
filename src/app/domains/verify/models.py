@@ -2,7 +2,7 @@
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from app.users.models import User
+    from app.domains.users.models import User
 
 from datetime import datetime, timezone
 
@@ -12,7 +12,8 @@ from sqlalchemy import (
     String,
     ForeignKey,
     DateTime,
-    func
+    func,
+    Index
 )
 
 from sqlalchemy.orm import(
@@ -35,8 +36,7 @@ class CodeEmail(Base):
     user_id :Mapped[int] = mapped_column(
         Integer,
         ForeignKey("users.user_id"),
-        nullable=False,
-        index=True
+        nullable=False
     )
     
     code_hash:Mapped[str] = mapped_column(
@@ -66,6 +66,14 @@ class CodeEmail(Base):
         nullable=False,
     )
     
+    
+    __table_args__ = (
+        Index(
+            "ix_code_email_user_id_used_at",
+            "user_id",
+            "used_at",
+        ),
+    )
     
     @property
     def code_expirado(self) -> bool:
