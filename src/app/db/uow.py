@@ -1,7 +1,7 @@
 # Repositories
 
-from app.users.repo import UserRepo
-from app.verify.repo import CodeEmailRepo
+from app.domains.users.repo import UserRepo
+from app.domains.verify.repo import CodeEmailRepo
 from emails.repo import EmailMessageRepo
 
 from app.db.contract import SessionContract
