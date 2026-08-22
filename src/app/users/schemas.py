@@ -15,8 +15,6 @@ class UserCreate(BaseModel):
     # bio: Optional[str] = Field(default=None, max_length=255)
 
 
-#
-
 class LoginRequest(BaseModel):
     email_or_username: str | EmailStr
     password: str = Field(..., min_length=8, max_length=128)
