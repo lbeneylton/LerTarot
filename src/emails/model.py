@@ -1,39 +1,27 @@
-
 from enum import Enum
 from datetime import datetime
-
-
 from sqlalchemy import (
     Integer,
     Identity,
     String,
-    Boolean,
     DateTime,
-    ForeignKey,
-    Index,
-    func,
-    Enum as SQLEnum
+    Enum as SQLEnum,
+    func
 )
+from sqlalchemy.orm import Mapped, mapped_column
 
-from sqlalchemy.orm import (
-    Mapped, 
-    mapped_column
-)
-
-# Base
 from app.db.base import Base
 
 
-# Estados
 class MessageStatus(str, Enum):
-    PENDING = 1
-    PROCESSING = 2
-    SENT = 3
-    RETRY = 4
-    FAILED = 5
+    PENDING = "PENDING"
+    PROCESSING = "PROCESSING"
+    SENT = "SENT"
+    RETRY = "RETRY"
+    FAILED = "FAILED"
 
 
-class EmailMensages(Base):
+class EmailMessage(Base):
     __tablename__ = "email_messages"
     
     message_id: Mapped[int] = mapped_column(
@@ -42,38 +30,49 @@ class EmailMensages(Base):
         primary_key=True
     )
     
-    to: Mapped[str]= mapped_column(
-        index=True
+    idempotency_key: Mapped[str | None] = mapped_column(
+        String(255),
+        unique=True,
+        index=True,
+        nullable=True
+    )
+    
+    to: Mapped[str] = mapped_column(
+        String(255),
+        index=True,
+        nullable=False
     )
 
-    subject: Mapped[str]= mapped_column(
-        
+    subject: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False
     )
 
-    template: Mapped[str]= mapped_column(
-        index=True
+    template: Mapped[str | None] = mapped_column(
+        String(100),
+        index=True,
+        nullable=True
     )
 
-    body : Mapped[] = mapped_column(
-        
+    body: Mapped[str] = mapped_column(
+        nullable=False
     )
 
     attempts: Mapped[int] = mapped_column(
         Integer,
-        default=1,
+        default=0,
         nullable=False
     )
     
-    
-    next_retry_at : Mapped[datetime] = mapped_column(
+    next_retry_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True
     )
 
-    status: Mapped[MessageStatus]= mapped_column(
+    status: Mapped[MessageStatus] = mapped_column(
         SQLEnum(
             MessageStatus,
-            name="user_role"
+            name="message_status"
         ),
         default=MessageStatus.PENDING,
         nullable=False,
@@ -86,18 +85,11 @@ class EmailMensages(Base):
         nullable=False,
     )
     
-    send_at: Mapped[datetime] = mapped_column(
+    sent_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True
     )
     
-    error: Mapped[str] = mapped_column(
-        
+    error: Mapped[str | None] = mapped_column(
+        nullable=True
     )
-
-
-    __mapper_args__ = {
-        "polymorphic_on": status        
-    }
-    
-    
