@@ -35,8 +35,10 @@ def register(
 ):
     user = create_service.create_user(data)
     
+    login_identifier = user.email or user.username
+    
     tokens = login_service.login(
-        email_or_username=str(user.email) or str(user.username),
+        email_or_username=login_identifier,
         password=data.password,
     )
     
