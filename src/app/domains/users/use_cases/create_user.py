@@ -69,7 +69,7 @@ class CreateUserService:
                 )
                 
                 message = EmailMessage(
-                    idempontency_key=key,
+                    idempotency_key=key,
                     to=user.email,
                     subject="Seja bem vindo ao Ler Tarot",
                     body="welcome_cliente",
@@ -95,7 +95,7 @@ class CreateUserService:
                 )
                 
                 message = EmailMessage(
-                    idempontency_key=key,
+                    idempotency_key=key,
                     to=user.email,
                     subject="Seja bem vindo ao Ler Tarot",
                     body="welcome_tarologo",
@@ -117,7 +117,7 @@ class CreateUserService:
 
             user = uow.users.save(user)
             
-        self.email_verificator.send_code(user)
+            self.email_verificator.send_code(user)
 
         return user
 
