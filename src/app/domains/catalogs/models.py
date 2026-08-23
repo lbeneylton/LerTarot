@@ -35,7 +35,7 @@ class Catalog(Base):
     
     user_id: Mapped[int] = mapped_column(
         Integer,
-        ForeignKey("users.user_id"),
+        ForeignKey("readers.user_id"),
         primary_key=True,
         nullable=False,
         unique=True
