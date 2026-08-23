@@ -8,6 +8,8 @@ class ScalarResultContract(Protocol):
 
 
 class QueryResultContract(Protocol):
+    rowcount:int
+    
     def scalars(self) -> Any:
         ...
 
@@ -25,8 +27,8 @@ class QueryResultContract(Protocol):
 
     def first(self) -> Any:
         ...
-
-
+    
+        
 class StatementContract(Protocol):
     def where(self, *criteria: Any) -> "StatementContract": ...
 

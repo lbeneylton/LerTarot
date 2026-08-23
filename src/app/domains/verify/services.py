@@ -115,3 +115,22 @@ class VerifyEmailService:
         with self.uow as uow:
             # Invalida códigos antigos
             uow.email_codes.invalidate_user_codes(user.user_id)
+            
+            
+            
+            
+            
+            
+# class SenderEmailService:
+#     def __init__(self, key:str, hasher: Argon2Hasher ) -> None:
+#         self.key =key
+#         self.hasher = self.hasher
+        
+#     def _generate_idepontecy_key(self, user) -> str:
+#         return f"verify_email:{user.user_id}"
+    
+    
+#     def send_verify_email(self):
+#         # Gerar novo código e hashear (6 dígitos)
+#         code = f"{secrets.randbelow(1_000_000):06d}"
+#         code_hash = self.hasher.hash(str(code))
