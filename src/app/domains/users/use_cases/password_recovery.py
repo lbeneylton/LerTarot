@@ -16,7 +16,7 @@ from app.db.uow import SqlAlchemyUnitOfWork
 
 
 # Verificador de email
-from app.domains.verify.services import CodeEmailService
+from app.domains.verify.services import VerifyEmailService
 
 
 import secrets
@@ -28,7 +28,7 @@ class PasswordRecoveryUseCase:
         self,
         uow: SqlAlchemyUnitOfWork,
         hasher: Argon2Hasher,
-        email_sender: CodeEmailService,
+        email_sender: VerifyEmailService,
     ) -> None:
         self.uow = uow
         self.hasher = hasher

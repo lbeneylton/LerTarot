@@ -10,12 +10,12 @@ from app.db.uow import SqlAlchemyUnitOfWork
 
 from app.security.hasher import Argon2Hasher, get_hasher
 from app.security.jwt_provider import JwtTokenService, get_token_provider
-from app.domains.verify.services import CodeEmailService
+from app.domains.verify.services import VerifyEmailService
 
 def get_create_service(
     uow: SqlAlchemyUnitOfWork= Depends(get_uow),
     hasher: Argon2Hasher =Depends(get_hasher),
-    email_verificator: CodeEmailService= Depends(get_email_verificator)
+    email_verificator: VerifyEmailService= Depends(get_email_verificator)
 ):
     return CreateUserService(
         uow,

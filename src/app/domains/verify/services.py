@@ -10,7 +10,7 @@ from app.core.exceptions import VerificationError
 from app.domains.emails.model import EmailMessage, MessageStatus
 
 
-class CodeEmailService:
+class VerifyEmailService:
     def __init__(
         self, 
         uow: SqlAlchemyUnitOfWork,

@@ -11,7 +11,7 @@ from app.domains.users.schemas import UserCreate
 
 
 # Verificador de email
-from app.domains.verify.services import CodeEmailService
+from app.domains.verify.services import VerifyEmailService
 
 # Exceptions
 from app.core.exceptions import ConflictError
@@ -21,7 +21,7 @@ class CreateUserService:
         self,
         uow: SqlAlchemyUnitOfWork, 
         hasher: Argon2Hasher, 
-        email_verificator: CodeEmailService
+        email_verificator: VerifyEmailService
     ) -> None:
         self.uow = uow
         self.hasher = hasher
