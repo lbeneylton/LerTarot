@@ -115,16 +115,11 @@ class CreateUserService:
                     role=UserRole.ADMIN,
                 )
 
-                
-
             user = uow.users.save(user)
             
-    
         self.email_verificator.send_code(user)
 
         return user
-
-
 
 
 class SendWelcomeEmail:
