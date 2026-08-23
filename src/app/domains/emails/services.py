@@ -3,7 +3,7 @@ import logging
 from jinja2 import Environment, FileSystemLoader
 
 from app.db.uow import SqlAlchemyUnitOfWork
-from app.domains.emails.model import EmailMessage, MessageStatus
+from app.domains.emails.models import EmailMessage, MessageStatus
 from app.domains.emails.schemas import MessageRequest
 
 logger = logging.getLogger("emails.service")
