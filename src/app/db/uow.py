@@ -2,7 +2,7 @@
 
 from app.domains.users.repo import UserRepo
 from app.domains.verify.repo import CodeEmailRepo
-from app.domains.emails.repo import EmailMessageRepo
+# from app.domains.emails.repo import EmailMessageRepo
 from app.domains.users.values.providers.repo import ProviderRepo
 from app.domains.users.values.password_recovery.repo import PasswordRecoveryRepo
 
@@ -16,7 +16,7 @@ class SqlAlchemyUnitOfWork:
         # Adicionar futuros repos
         self.users = UserRepo(session)
         self.email_codes = CodeEmailRepo(session)
-        self.emails = EmailMessageRepo(session)
+        # self.emails = EmailMessageRepo(session)
         
         self.providers = ProviderRepo(session)
         self.password_recovery = PasswordRecoveryRepo(session)

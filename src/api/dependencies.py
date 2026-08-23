@@ -40,7 +40,7 @@ def verify_internal_token(x_internal_token: str = Header(...)) -> str:
     return x_internal_token
 
 
-from app.domains.emails.services import EmailService
+# from app.domains.emails.services import EmailService
 
-def get_email_service(uow: SqlAlchemyUnitOfWork = Depends(get_uow)) -> EmailService:
-    return EmailService(uow)
+# def get_email_service(uow: SqlAlchemyUnitOfWork = Depends(get_uow)) -> EmailService:
+#     return EmailService(uow)
