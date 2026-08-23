@@ -16,6 +16,11 @@ from app.domains.verify.services import VerifyEmailService
 # Exceptions
 from app.core.exceptions import ConflictError
 
+# Criar mensagem na outbox
+from app.domains.emails.models import EmailMessage
+
+from datetime import datetime, timezone
+
 class CreateUserService:
     def __init__(
         self,
@@ -56,6 +61,25 @@ class CreateUserService:
                     email=data.email,
                     password_hash=password_hash,
                 )
+                
+                key=(
+                    f"welcome_cliente:"
+                    f"{user.user_id}:"
+                    f"{datetime.now(timezone.utc)}"
+                )
+                
+                message = EmailMessage(
+                    idempontency_key=key,
+                    to=user.email,
+                    subject="Seja bem vindo ao Ler Tarot",
+                    body="welcome_cliente",
+                    variables={
+                        "user_name": user.username,
+                        "year":"2026"
+                    }
+                )
+                
+                uow.emails.save(message)
 
             elif data.role == UserRole.READER:
                 user = Reader(
@@ -63,6 +87,25 @@ class CreateUserService:
                     email=data.email,
                     password_hash=password_hash,
                 )
+                
+                key=(
+                    f"welcome_tarologo:"
+                    f"{user.user_id}:"
+                    f"{datetime.now(timezone.utc)}"
+                )
+                
+                message = EmailMessage(
+                    idempontency_key=key,
+                    to=user.email,
+                    subject="Seja bem vindo ao Ler Tarot",
+                    body="welcome_tarologo",
+                    variables={
+                        "user_name": user.username,
+                        "year":"2026"
+                    }
+                )
+                
+                uow.emails.save(message)
 
             else:
                 user = User(
@@ -72,6 +115,7 @@ class CreateUserService:
                     role=UserRole.ADMIN,
                 )
 
+                
 
             user = uow.users.save(user)
             

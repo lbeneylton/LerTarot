@@ -21,7 +21,8 @@ from app.db.uow import SqlAlchemyUnitOfWork
 from app.domains.emails.services import EmailService
 from app.domains.emails.models import EmailMessage
 
-
+# URL para recovery password
+from app.core.config import settings
 
 
 class PasswordRecoveryUseCase:
@@ -96,7 +97,9 @@ class PasswordRecoveryUseCase:
                 body="password_reset",
                 variables={
                     "user_name": user.username,
-                    "token": token
+                    "url_reset":str(settings.url_recovery_password),
+                    "token": token,
+                    "year": "2026"
                 }
             )
 
