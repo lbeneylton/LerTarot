@@ -1,26 +1,30 @@
+# Utils e time
+import secrets
+from datetime import datetime, timezone, timedelta
+
 # Classe para hashes
 from app.security.hasher import Argon2Hasher
 
 # Erros
 from app.core.exceptions import (
-    UnauthorizedError,
-    ConflictError
+    UnauthorizedError
 )
 
 # Modelos
-from app.domains.users.models import User
 from app.domains.users.values.password_recovery.models import PasswordRecovery
 
 # UOW
 from app.db.uow import SqlAlchemyUnitOfWork
 
 
-# Verificador de email
-from app.domains.verify.services import VerifyEmailService
+# Criadores de email no outbox
+from app.domains.emails.services import EmailService
+from app.domains.emails.models import (
+    EmailMessage, 
+    MessageStatus
+)
 
 
-import secrets
-from datetime import datetime, timezone, timedelta
 
 
 class PasswordRecoveryUseCase:
@@ -28,7 +32,7 @@ class PasswordRecoveryUseCase:
         self,
         uow: SqlAlchemyUnitOfWork,
         hasher: Argon2Hasher,
-        email_sender: VerifyEmailService,
+        email_sender: EmailService 
     ) -> None:
         self.uow = uow
         self.hasher = hasher
@@ -43,7 +47,7 @@ class PasswordRecoveryUseCase:
         - gera um novo token;
         - salva apenas o hash do token;
         - define validade de 15 minutos;
-        - envia o token por e-mail.
+        - cria uma mensagem no outbox.
 
         Se o usuário não existir, retorna normalmente para
         não revelar se o e-mail está cadastrado.
@@ -55,7 +59,7 @@ class PasswordRecoveryUseCase:
             # Não revela se o e-mail existe.
             if user is None:
                 return
-
+            
             # Invalida recuperações anteriores.
             uow.password_recovery.invalidate_user_tokens(
                 user.user_id
@@ -64,7 +68,7 @@ class PasswordRecoveryUseCase:
             # Token puro.
             token = secrets.token_urlsafe(32)
 
-            # Ecpitra em 15 minutos.
+            # Expitra em 15 minutos.
             expires_at = (
                 datetime.now(timezone.utc)
                 + timedelta(minutes=15)
@@ -81,14 +85,26 @@ class PasswordRecoveryUseCase:
 
             uow.password_recovery.save(recovery)
 
-            # Garante persistência antes do envio.
-            uow.session.flush()
 
-            # O usuário recebe o token puro.
-            self.email_sender.send_link(
-                user,
-                token,
+            idempotency_key = (
+                f"recovery_password:"
+                f"{user.user_id}:"
+                f"{token_hash}"
             )
+            
+            email_message= EmailMessage(
+                idempotency_key=idempotency_key,
+                to=user.email,
+                template="password_reset",
+                variables={
+                    "user_name": user.username,
+                    "token": token
+                },
+                status=MessageStatus.PENDING
+            )
+
+            uow.emails.save(email_message)
+                         
 
     def reset_password(
         self,
@@ -111,17 +127,24 @@ class PasswordRecoveryUseCase:
             recoveries = (
                 uow.password_recovery.get_active_tokens()
             )
+            
+            now = datetime.now(timezone.utc)
 
             for recovery in recoveries:
 
-                # Verifica se o token recebido corresponde
-                # ao hash armazenado.
+                # Token expirado.
+                if recovery.expires_at <= now:
+                    continue
+                
+                # Confere o token puro contra o hash.
                 if not self.hasher.verify_hash(
                     token,
                     recovery.token_hash,
                 ):
                     continue
 
+
+                # Confere se o usuário ainda está ativo.
                 user = uow.users.get_active_by_id(
                     recovery.user_id
                 )
@@ -131,14 +154,14 @@ class PasswordRecoveryUseCase:
                         "Token inválido"
                     )
 
-                # Define a nova senha.
+                 # Altera a senha.
                 user.password_hash = self.hasher.hash(
                     new_password
                 )
 
-                # Token de recuperação só pode ser usado uma vez.
-                recovery.used_at = datetime.now(timezone.utc)
 
+                # Invalida o token após utilização.
+                recovery.used_at = now
                 return 
 
             raise UnauthorizedError(
@@ -188,8 +211,7 @@ class PasswordRecoveryUseCase:
     #         )
 
     #     return "Senha alterada"
-
-    # def verify_token(self, token: str) -> bool:
+ 
         """
         Valida o token de recuperação.
 

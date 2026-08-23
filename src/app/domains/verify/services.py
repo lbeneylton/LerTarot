@@ -7,7 +7,7 @@ from app.db.uow import SqlAlchemyUnitOfWork
 from app.security.hasher import Argon2Hasher
 from app.core.exceptions import VerificationError
 
-# from app.domains.emails.model import EmailMessage, MessageStatus
+from app.domains.emails.models import EmailMessage, MessageStatus
 
 
 class VerifyEmailService:
@@ -67,14 +67,17 @@ class VerifyEmailService:
             # Enfileira o e-mail na fila (outbox) de forma transacional e idempotente
             idempotency_key = f"verify_email:{user.user_id}:{code_hash}"
             
-            # email_message = EmailMessage(
-            #     idempotency_key=idempotency_key,
-            #     to=user.email,
-            #     subject="Verifique seu e-mail - Ler Tarot",
-            #     body=f"Seu código de verificação é: {code}",
-            #     status=MessageStatus.PENDING
-            # )
-            # uow.emails.save(email_message)
+            email_message = EmailMessage(
+                idempotency_key=idempotency_key,
+                to=user.email,
+                template="verify_email",
+                variables={
+                    "user_name":user.username,
+                    "code":code
+                },
+                status=MessageStatus.PENDING
+            )
+            uow.emails.save(email_message)
 
     def verify_code(self, user: User, code: str) -> User:
         """Verifica o codigo do usuário"""
@@ -110,7 +113,7 @@ class VerifyEmailService:
             return user
 
 
-    def send_link(self, user: User, code: str):
+
         with self.uow as uow:
             # Invalida códigos antigos
             uow.email_codes.invalidate_user_codes(user.user_id)

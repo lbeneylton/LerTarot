@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="pt-BR">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+		<title>Recibo — Ler Tarot</title>
+
+		<style>
+			body {
+				margin: 0;
+				padding: 0;
+				background-color: #0f0e17;
+				font-family: "Georgia", serif;
+				color: #fffffe;
+			}
+
+			.container {
+				max-width: 600px;
+				margin: 40px auto;
+				background-color: #1a1828;
+				border-radius: 12px;
+				overflow: hidden;
+				box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+			}
+
+			.header {
+				background: linear-gradient(135deg, #6b21a8 0%, #1e1b4b 100%);
+
+				padding: 40px 32px;
+				text-align: center;
+			}
+
+			.header h1 {
+				margin: 0;
+				font-size: 28px;
+				color: #e9c46a;
+				letter-spacing: 1px;
+			}
+
+			.header p {
+				margin: 8px 0 0;
+				color: #c4b5fd;
+				font-size: 14px;
+			}
+
+			.body {
+				padding: 40px 32px;
+			}
+
+			.body p {
+				font-size: 15px;
+				line-height: 1.8;
+				color: #d4d2e3;
+			}
+
+			.receipt-info {
+				margin: 28px 0;
+				padding: 20px;
+				background-color: #2d2b3d;
+				border-radius: 10px;
+				border: 1px solid #403d52;
+			}
+
+			.info-row {
+				display: table;
+				width: 100%;
+				margin-bottom: 8px;
+			}
+
+			.info-row:last-child {
+				margin-bottom: 0;
+			}
+
+			.info-label {
+				display: table-cell;
+				width: 50%;
+				color: #9ca3af;
+				font-size: 13px;
+			}
+
+			.info-value {
+				display: table-cell;
+				width: 50%;
+				text-align: right;
+				color: #d4d2e3;
+				font-size: 13px;
+			}
+
+			.items {
+				margin-top: 28px;
+			}
+
+			.items-title {
+				margin-bottom: 14px;
+				font-size: 16px;
+				color: #e9c46a;
+			}
+
+			.item {
+				padding: 16px 0;
+				border-bottom: 1px solid #2d2b3d;
+			}
+
+			.item-name {
+				color: #fffffe;
+				font-size: 14px;
+				font-weight: bold;
+			}
+
+			.item-description {
+				margin-top: 4px;
+				color: #9ca3af;
+				font-size: 12px;
+			}
+
+			.item-price {
+				margin-top: 8px;
+				color: #d4d2e3;
+				font-size: 14px;
+			}
+
+			.totals {
+				margin-top: 24px;
+			}
+
+			.total-row {
+				display: table;
+				width: 100%;
+				margin-bottom: 10px;
+			}
+
+			.total-label {
+				display: table-cell;
+				color: #9ca3af;
+				font-size: 14px;
+			}
+
+			.total-value {
+				display: table-cell;
+				text-align: right;
+				color: #d4d2e3;
+				font-size: 14px;
+			}
+
+			.discount {
+				color: #86efac !important;
+			}
+
+			.grand-total {
+				margin-top: 16px;
+				padding-top: 18px;
+				border-top: 2px solid #7c3aed;
+			}
+
+			.grand-total .total-label {
+				color: #e9c46a;
+				font-size: 17px;
+				font-weight: bold;
+			}
+
+			.grand-total .total-value {
+				color: #e9c46a;
+				font-size: 20px;
+				font-weight: bold;
+			}
+
+			.status {
+				margin: 28px 0;
+				padding: 14px;
+				background-color: #17231b;
+				border: 1px solid #315c3b;
+				border-radius: 8px;
+				text-align: center;
+				color: #86efac;
+				font-size: 13px;
+				font-weight: bold;
+			}
+
+			.note {
+				font-size: 13px !important;
+				color: #9ca3af !important;
+			}
+
+			.button-container {
+				margin: 32px 0;
+				text-align: center;
+			}
+
+			.button {
+				display: inline-block;
+				padding: 15px 30px;
+				background-color: #7c3aed;
+				color: #ffffff !important;
+				text-decoration: none;
+				border-radius: 8px;
+				font-size: 14px;
+				font-weight: bold;
+			}
+
+			.footer {
+				padding: 24px 32px;
+				text-align: center;
+				border-top: 1px solid #2d2b3d;
+			}
+
+			.footer p {
+				margin: 4px 0;
+				font-size: 12px;
+				color: #6b7280;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div class="container">
+			<div class="header">
+				<h1>✦ Ler Tarot ✦</h1>
+				<p>Recibo de pagamento</p>
+			</div>
+
+			<div class="body">
+				<p>Olá, <strong>{{ user_name }}</strong>!</p>
+
+				<p>
+					Obrigado pela sua compra. Seu pagamento foi processado com
+					sucesso e este e-mail serve como comprovante da sua
+					transação.
+				</p>
+
+				<div class="receipt-info">
+					<div class="info-row">
+						<div class="info-label">Número do recibo</div>
+
+						<div class="info-value">{{ receipt_number }}</div>
+					</div>
+
+					<div class="info-row">
+						<div class="info-label">Data</div>
+
+						<div class="info-value">{{ transaction_date }}</div>
+					</div>
+
+					<div class="info-row">
+						<div class="info-label">Método de pagamento</div>
+
+						<div class="info-value">{{ payment_method }}</div>
+					</div>
+				</div>
+
+				<div class="status">✓ Pagamento confirmado</div>
+
+				<div class="items">
+					<div class="items-title">Detalhes da compra</div>
+
+					{{ items_html }}
+				</div>
+
+				<div class="totals">
+					<div class="total-row">
+						<div class="total-label">Subtotal</div>
+
+						<div class="total-value">{{ subtotal }}</div>
+					</div>
+
+					<div class="total-row">
+						<div class="total-label">Desconto</div>
+
+						<div class="total-value discount">- {{ discount }}</div>
+					</div>
+
+					<div class="total-row grand-total">
+						<div class="total-label">Total</div>
+
+						<div class="total-value">{{ total }}</div>
+					</div>
+				</div>
+
+				<div class="button-container">
+					<a
+						class="button"
+						href="{{ receipt_url }}"
+						target="_blank"
+						rel="noopener noreferrer"
+					>
+						Ver recibo
+					</a>
+				</div>
+
+				<p class="note">
+					Este e-mail foi enviado automaticamente pelo
+					<strong>Ler Tarot</strong>. Guarde-o para seus registros.
+				</p>
+
+				<p class="note">
+					Se você não reconhece esta transação, entre em contato com
+					nosso suporte.
+				</p>
+			</div>
+
+			<div class="footer">
+				<p>
+					&copy; {{ year }} Ler Tarot. Todos os direitos reservados.
+				</p>
+
+				<p>Este é um e-mail automático. Por favor, não responda.</p>
+			</div>
+		</div>
+	</body>
+</html>
+```
