@@ -12,32 +12,33 @@ from app.core.handler import app_exception_handler
 # Rotas
 from api.auth import auth_router
 from api.forgot_password import forgot_router
-# from api.email_verify import email_router
+from api.email_verify import verify_router
 # from api.email_sender import email_sender
 
 # Worker
-#from providers.emails.worker import email_worker
+from providers.email_sender.worker import email_worker
 
 
-# @asynccontextmanager
-# async def lifespan(app: FastAPI):
-#     # Inicia o worker em background no startup da aplicação
-#     worker_task = asyncio.create_task(email_worker.start())
-#     yield
-#     # Finaliza o worker no shutdown da aplicação
-#     email_worker.stop()
-#     try:
-#         await asyncio.wait_for(worker_task, timeout=5.0)
-#     except asyncio.TimeoutError:
-#         pass
-lifespan = None
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Inicia o worker
+    worker_task = asyncio.create_task(email_worker.start())
+
+    try:
+        yield
+    finally:
+       # Finaliza o worker no shutdown da aplicação
+        email_worker.stop()
+        await worker_task 
+
+
 
 app = FastAPI(
     title="Ler Tarot API",
     version="0.1.0",
     summary="API da plataforma Ler Tarot",
     description="Catalógos e agendamentos",
-    lifespan=lifespan if lifespan else None
+    lifespan=lifespan
 )
 
 origins = [
@@ -58,7 +59,7 @@ app.add_exception_handler(AppException, app_exception_handler)  # type: ignore
 
 app.include_router(auth_router)
 app.include_router(forgot_router)
-# app.include_router(email_router)
+app.include_router(verify_router)
 # app.include_router(email_sender)
 
 
