@@ -6,7 +6,8 @@ from sqlalchemy import (
     String,
     DateTime,
     Enum as SQLEnum,
-    func
+    func,
+    JSON
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -45,18 +46,22 @@ class EmailMessage(Base):
 
     subject: Mapped[str] = mapped_column(
         String(255),
-        nullable=False
+        nullable=True
     )
-
+    
+    body: Mapped[str] = mapped_column(
+            nullable=True
+        )
+    
+    
+    ##
     template: Mapped[str | None] = mapped_column(
         String(100),
         index=True,
         nullable=True
     )
-
-    body: Mapped[str] = mapped_column(
-        nullable=False
-    )
+    
+    variables = mapped_column(JSON, nullable=True)
 
     attempts: Mapped[int] = mapped_column(
         Integer,
@@ -78,6 +83,8 @@ class EmailMessage(Base):
         nullable=False,
         index=True
     )
+    
+    
     
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

@@ -70,6 +70,7 @@ class VerifyEmailService:
             email_message = EmailMessage(
                 idempotency_key=idempotency_key,
                 to=user.email,
+                subject="Verifique seu email",
                 template="verify_email",
                 variables={
                     "user_name":user.username,
@@ -111,8 +112,6 @@ class VerifyEmailService:
             uow.email_codes.save(verification)
 
             return user
-
-
 
         with self.uow as uow:
             # Invalida códigos antigos

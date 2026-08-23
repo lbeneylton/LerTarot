@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Depends, Header, BackgroundTasks, status, HTTPException
 
-from api.dependencies import get_email_service, verify_internal_token
-from providers.emails.services import EmailService
-from providers.emails.schemas import MessageRequest
-from providers.emails.worker import email_worker
+# from api.dependencies import get_email_service, verify_internal_token
+from app.domains.emails.services import EmailService
+from app.domains.emails.schemas import MessageRequest
 
 # O roteador é protegido a nível de roteador:
 # Todas as rotas neste arquivo exigem o header X-Internal-Token válido.
@@ -31,8 +30,7 @@ def post_email(
     try:
         email_message = email_service.enqueue_email(data, idempotency_key=x_idempotency_key)
         
-        # Agenda execução imediata em background (não bloqueia HTTP)
-        background_tasks.add_task(email_worker.process_emails)
+
         
         return {
             "message": "E-mail recebido e enfileirado para processamento",

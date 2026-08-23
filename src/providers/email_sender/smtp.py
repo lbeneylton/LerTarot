@@ -3,7 +3,7 @@ import logging
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-from app._sender.interface import EmailSender
+from providers.email_sender.interface import EmailSender
 from app.core.config import settings
 
 logger = logging.getLogger("app.email_smtp")

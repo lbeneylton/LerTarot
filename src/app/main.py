@@ -28,8 +28,10 @@ async def lifespan(app: FastAPI):
         yield
     finally:
        # Finaliza o worker no shutdown da aplicação
+        #
         email_worker.stop()
         await worker_task 
+        pass
 
 
 

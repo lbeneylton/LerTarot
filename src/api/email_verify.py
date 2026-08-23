@@ -1,11 +1,10 @@
-from fastapi import APIRouter, Depends, BackgroundTasks, status
+from fastapi import APIRouter, Depends, status
 
 from app.domains.users.models import User
 from app.auth.permissions import get_current_user
 from app.domains.verify.schemas import VerifyEmailRequest
 from app.domains.verify.services import VerifyEmailService
 from api.dependencies import get_email_verificator
-from providers.email_sender.worker import email_worker
 
 verify_router = APIRouter(prefix="/email-verification", tags=["Email Verification"])
 

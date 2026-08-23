@@ -1,11 +1,13 @@
 import asyncio
 import logging
+
 from datetime import datetime, timezone, timedelta
 
-from app.db.session import SessionLocal
+from app.db.connection import SessionLocal
 from app.db.uow import SqlAlchemyUnitOfWork
-from providers.emails.interface import get_sender
-from providers.emails.model import MessageStatus
+from app.domains.emails.models import MessageStatus
+
+from providers.email_sender.interface import get_sender
 
 logger = logging.getLogger("emails.worker")
 
