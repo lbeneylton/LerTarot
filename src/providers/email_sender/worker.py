@@ -69,6 +69,8 @@ class EmailWorker:
             logger.debug("Buscando e-mails pendentes...")
 
             with uow:
+                pending_message_ids = []
+                
                 pending_messages = (
                     uow.emails
                     .get_pending_emails_for_processing(
@@ -84,10 +86,12 @@ class EmailWorker:
                 for msg in pending_messages:
                     logger.info(
                         f"Reservando e-mail {msg.message_id} | "
-                        f"template={msg.template} |" 
+                        f"template={msg.body} |" 
                         f"status atual={msg.status}"
                     )
 
+                    pending_message_ids.append(msg.message_id)
+                    
                     msg.status = (MessageStatus.PROCESSING)
                     uow.emails.save(msg)
 
@@ -108,10 +112,10 @@ class EmailWorker:
         # Transação própria
         # =====================================================
 
-        for msg in pending_messages:
+        for message_id in pending_message_ids:
 
             try:
-                logger.info("Processando e-mail {msg.message_id}")
+                logger.info(f"Processando e-mail {message_id}")
                 sub_session = SessionLocal()
                 sub_uow = SqlAlchemyUnitOfWork(sub_session)  # type: ignore
 
@@ -123,13 +127,11 @@ class EmailWorker:
 
                     db_msg = (
                         sub_uow.emails
-                        .get_by_id(
-                            msg.message_id
-                        )
+                        .get_by_id(message_id)
                     )
 
                     if not db_msg:
-                        logger.error(f"E-mail {msg.message_id} não encontrado no banco.")
+                        logger.error(f"E-mail {message_id} não encontrado no banco.")
                         continue
 
 
@@ -143,10 +145,11 @@ class EmailWorker:
                             f"para e-mail {db_msg.message_id}..."
                         )
 
-                        self.email_sender.send(
+                        self.email_sender.send_template(
                             to=db_msg.to,
                             subject=db_msg.subject,
-                            body=db_msg.body
+                            template=f"{db_msg.body}.html",
+                            variable=dict(db_msg.variables)
                         )
 
                         # =====================================
@@ -208,15 +211,10 @@ class EmailWorker:
                             )
 
                             logger.warning(
-                                "E-mail %s falhou. "
-                                "Tentativa %s/%s. "
-                                "Retry em %s segundos. "
-                                "Erro: %s",
-                                db_msg.message_id,
-                                db_msg.attempts,
-                                self.max_attempts,
-                                backoff_seconds,
-                                error_msg,
+                                f"E-mail {db_msg.message_id} falhou. "
+                                f"Tentativa {db_msg.attempts}/{self.max_attempts}. "
+                                f"Retry em: {backoff_seconds} segundos",
+                                f"Erro: {error_msg}"
                             )
 
                         # =====================================
@@ -229,12 +227,9 @@ class EmailWorker:
                             )
 
                             logger.error(
-                                "E-mail %s falhou "
-                                "definitivamente após %s "
-                                "tentativas. Erro: %s",
-                                db_msg.message_id,
-                                db_msg.attempts,
-                                error_msg,
+                                f"E-mail {db_msg.message_id} falhou "
+                                f"definitivamente após {db_msg.attempts} "
+                                f"tentativas. Erro: {error_msg}",
                             )
 
                     # =========================================
@@ -258,10 +253,7 @@ class EmailWorker:
                 # =============================================
 
             except Exception:
-                logger.exception(
-                    "ERRO AO PROCESSAR E-MAIL %s",
-                    msg.message_id,
-                )
+                logger.exception(f"ERRO AO PROCESSAR E-MAIL ")
 
                 # O erro de um e-mail não derruba
                 # o processamento dos próximos.

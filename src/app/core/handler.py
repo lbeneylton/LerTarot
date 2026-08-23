@@ -11,8 +11,8 @@ from app.core.config import get_settings
 
 # Criando logger com o nome do arquivo
 logger = AppLogger(
-    get_settings().env,
-    __name__
+    __name__,
+    get_settings().env
 )
 
 

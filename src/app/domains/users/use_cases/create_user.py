@@ -73,10 +73,22 @@ class CreateUserService:
                 )
 
 
-            uow.users.save(user)
+            user = uow.users.save(user)
             
     
         self.email_verificator.send_code(user)
 
         return user
 
+
+
+
+class SendWelcomeEmail:
+    
+    def welcome_tarologo(self):
+        pass
+    
+    
+    def welcome_cliente(self):
+        pass
+        

@@ -23,6 +23,14 @@ class MessageStatus(str, Enum):
 
 
 class EmailMessage(Base):
+    """
+    idempotency_key\n
+    to\n
+    subject\n
+    body (template)\n
+    variables NULLABLE\n
+    """
+    
     __tablename__ = "email_messages"
     
     message_id: Mapped[int] = mapped_column(
@@ -46,19 +54,11 @@ class EmailMessage(Base):
 
     subject: Mapped[str] = mapped_column(
         String(255),
-        nullable=True
+        nullable=False
     )
     
     body: Mapped[str] = mapped_column(
-            nullable=True
-        )
-    
-    
-    ##
-    template: Mapped[str | None] = mapped_column(
-        String(100),
-        index=True,
-        nullable=True
+        nullable=False
     )
     
     variables = mapped_column(JSON, nullable=True)
@@ -84,8 +84,7 @@ class EmailMessage(Base):
         index=True
     )
     
-    
-    
+      
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=func.now(),

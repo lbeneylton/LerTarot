@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 class EmailSender(ABC):
     @abstractmethod
-    def send(self, to: str, subject: str, body: str) -> None:
+    def send_text(self, to: str, subject: str, body: str) -> None:
         """Envia um e-mail.
         
         Args:
@@ -10,4 +10,8 @@ class EmailSender(ABC):
             subject: Assunto do e-mail.
             body: Conteúdo do e-mail (HTML ou texto simples).
         """
+        pass
+    
+    @abstractmethod
+    def send_template(self, to: str, subject: str, template: str, variable: dict) -> None:
         pass

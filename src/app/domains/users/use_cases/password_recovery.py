@@ -19,10 +19,7 @@ from app.db.uow import SqlAlchemyUnitOfWork
 
 # Criadores de email no outbox
 from app.domains.emails.services import EmailService
-from app.domains.emails.models import (
-    EmailMessage, 
-    MessageStatus
-)
+from app.domains.emails.models import EmailMessage
 
 
 
@@ -95,12 +92,12 @@ class PasswordRecoveryUseCase:
             email_message= EmailMessage(
                 idempotency_key=idempotency_key,
                 to=user.email,
-                template="password_reset",
+                subject="Solicitação de alteração de senha",
+                body="password_reset",
                 variables={
                     "user_name": user.username,
                     "token": token
-                },
-                status=MessageStatus.PENDING
+                }
             )
 
             uow.emails.save(email_message)

@@ -2,6 +2,9 @@ import logging
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
+from app.core.config import settings
+
+ENV = settings.env
 
 class AppLogger:
     LOG_DIR = Path("logs")
@@ -18,8 +21,8 @@ class AppLogger:
 
     def __init__(
         self,
-        environment: str,
-        name: str = "app"
+        name: str,
+        environment: str = ENV
     ) -> None:
 
         self.environment = environment
@@ -67,7 +70,7 @@ class AppLogger:
 
             self.logger.setLevel(logging.INFO)
         else:
-            raise ValueError("Ambiente desconhecido")
+            raise ValueError(f"Ambiente desconhecido {str(self.environment)}")
 
         # ==========================
         # CONSOLE

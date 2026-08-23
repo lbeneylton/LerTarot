@@ -7,7 +7,7 @@ from app.db.uow import SqlAlchemyUnitOfWork
 from app.security.hasher import Argon2Hasher
 from app.core.exceptions import VerificationError
 
-from app.domains.emails.models import EmailMessage, MessageStatus
+from app.domains.emails.models import EmailMessage
 
 
 class VerifyEmailService:
@@ -71,12 +71,11 @@ class VerifyEmailService:
                 idempotency_key=idempotency_key,
                 to=user.email,
                 subject="Verifique seu email",
-                template="verify_email",
+                body="verify_email",
                 variables={
                     "user_name":user.username,
                     "code":code
-                },
-                status=MessageStatus.PENDING
+                }
             )
             uow.emails.save(email_message)
 
