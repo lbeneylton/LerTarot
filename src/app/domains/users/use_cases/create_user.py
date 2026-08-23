@@ -21,6 +21,16 @@ from app.domains.emails.models import EmailMessage
 
 from datetime import datetime, timezone
 
+
+from dataclasses import dataclass
+
+@dataclass
+class CreatedUser:
+    user_id: int
+    email: str
+    username: str | None
+
+
 class CreateUserService:
     def __init__(
         self,
@@ -97,8 +107,21 @@ class CreateUserService:
             
             # 5. Forçar INSERT e obter user_id
             uow.session.flush()
+            
+            
+            # 6. Capturar os dados ANTES do commit/fechamento da UOW
+            user_id = new_user.user_id
+            user_email = new_user.email
+            user_username = new_user.username
+            
+            # 7. Cria objeto para finalizar
+            result = CreatedUser(
+                user_id=new_user.user_id,
+                email=new_user.email,
+                username=new_user.username,
+            )
 
-            # 6. Criar e-mail de boas-vindas
+            # 8. Criar e-mail de boas-vindas
             if welcome_body:
 
                 key = (
@@ -120,10 +143,11 @@ class CreateUserService:
 
                 uow.emails.save(message)
 
-            # 7. Gerar código de verificação
+            # 9. Gerar código de verificação
             self.email_verificator.send_code(new_user)
 
-        return new_user
+        # UOW Fechada
+        return result # type: ignore
 
 
 class SendWelcomeEmail:
