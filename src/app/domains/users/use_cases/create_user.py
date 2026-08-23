@@ -1,7 +1,7 @@
 from app.security.hasher import Argon2Hasher
 
 # Tipos e modelos
-from app.domains.users.models import User
+from app.domains.users.models import User, Client, Reader , UserRole
 
 # UOW
 from app.db.uow import SqlAlchemyUnitOfWork
@@ -50,12 +50,28 @@ class CreateUserService:
 
             password_hash = self.hasher.hash(data.password)
 
-            user = User(
-                email=data.email,
-                username=data.username,
-                password_hash=password_hash,
-                role=data.role.value
-            )
+            if data.role == UserRole.CLIENTE:
+                user = Client(
+                    username=data.username,
+                    email=data.email,
+                    password_hash=password_hash,
+                )
+
+            elif data.role == UserRole.READER:
+                user = Reader(
+                    username=data.username,
+                    email=data.email,
+                    password_hash=password_hash,
+                )
+
+            else:
+                user = User(
+                    username=data.username,
+                    email=data.email,
+                    password_hash=password_hash,
+                    role=UserRole.ADMIN,
+                )
+
 
             uow.users.save(user)
             

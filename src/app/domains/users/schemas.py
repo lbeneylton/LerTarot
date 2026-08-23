@@ -5,7 +5,7 @@ from app.domains.users.enums import UserType
 
 
 class UserCreate(BaseModel):
-    username: Optional[str] = Field(..., min_length=1, max_length=50)
+    username: Optional[str]
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=128)
     role: UserType = UserType.CLIENTE

@@ -8,11 +8,23 @@ class ScalarResultContract(Protocol):
 
 
 class QueryResultContract(Protocol):
-    def scalars(self) -> ScalarResultContract: ...
+    def scalars(self) -> Any:
+        ...
 
-    def scalar_one_or_none(self) -> Any | None: ...
+    def scalar(self) -> Any:
+        ...
 
-    def rowcount(self) -> int: ...
+    def scalar_one(self) -> Any:
+        ...
+
+    def scalar_one_or_none(self) -> Any:
+        ...
+
+    def all(self) -> list[Any]:
+        ...
+
+    def first(self) -> Any:
+        ...
 
 
 class StatementContract(Protocol):
@@ -22,22 +34,52 @@ class StatementContract(Protocol):
 
 
 class SessionContract(Protocol):
-    def __call__(self) -> "SessionContract": ...
-
-    def add(self, *args: Any, **kwargs: Any) -> None: ...
-
-    def execute(self, statement: Any, *args: Any, **kwargs: Any) -> QueryResultContract:
+    def add(
+        self,
+        instance: object,
+        *_args: Any,
+        **_kwargs: Any,
+    ) -> None:
         ...
 
-    def close(self) -> None: ...
+    def execute(
+        self,
+        statement: Any,
+        *_args: Any,
+        **_kwargs: Any,
+    ) -> QueryResultContract:
+        ...
 
-    def commit(self) -> None: ...
+    def close(self) -> None:
+        ...
 
-    def rollback(self) -> None: ...
+    def commit(self) -> None:
+        ...
+
+    def rollback(self) -> None:
+        ...
+
+    def flush(self) -> None:
+        ...
+
+    def refresh(
+        self,
+        instance: object,
+    ) -> None:
+        ...
+
+    def __enter__(self) -> "SessionContract":
+        ...
+
+    def __exit__(
+        self,
+        exc_type: Any,
+        exc_value: Any,
+        traceback: Any,
+    ) -> None:
+        ...
         
-    def flush(self) -> None: ...
         
-    def refresh(self, instance: object) -> None: ...
-    
-    
-    def update(self): ...
+class SessionFactoryContract(Protocol):
+    def __call__(self) -> SessionContract:
+        ...

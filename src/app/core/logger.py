@@ -2,8 +2,6 @@ import logging
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
-from app.core.config import get_settings
-
 
 class AppLogger:
     LOG_DIR = Path("logs")
@@ -32,6 +30,9 @@ class AppLogger:
             self._configure()
 
     def _configure(self) -> None:
+        
+        if not self.environment:
+            raise ValueError("Ambiente não configurado")
 
         formatter = logging.Formatter(
             self.LOG_FORMAT,
@@ -42,7 +43,7 @@ class AppLogger:
         # DEV
         # ==========================
 
-        if self.environment == "DEV":
+        if self.environment.upper() == "DEV":
 
             self.LOG_DIR.mkdir(exist_ok=True)
 
@@ -62,9 +63,11 @@ class AppLogger:
         # PROD
         # ==========================
 
-        elif self.environment == "PROD":
+        elif self.environment.upper() == "PROD":
 
             self.logger.setLevel(logging.INFO)
+        else:
+            raise ValueError("Ambiente desconhecido")
 
         # ==========================
         # CONSOLE
@@ -74,6 +77,7 @@ class AppLogger:
         console_handler.setFormatter(formatter)
 
         self.logger.addHandler(console_handler)
+        
 
     def debug(self, message: str) -> None:
         self.logger.debug(message, stacklevel=2)

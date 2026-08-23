@@ -25,8 +25,11 @@ class SqlAlchemyUnitOfWork:
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        if exc_type:
-            self.session.rollback()
-        else:
-            self.session.commit()
+        try:
+            if exc_type:
+                self.session.rollback()
+            else:
+                self.session.commit()
+        finally:
+            self.session.close()
       

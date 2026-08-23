@@ -8,7 +8,14 @@ from app.core.config import settings
 
 URL_DATABASE = settings.database.url
 
-engine = create_engine(URL_DATABASE)
+engine = create_engine(
+    URL_DATABASE, 
+    pool_pre_ping=True,
+    connect_args={
+        "prepare_threshold": None,
+    }
+    
+)
 
 SessionLocal = sessionmaker(
     autocommit=False,
