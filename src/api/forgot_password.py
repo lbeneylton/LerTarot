@@ -18,7 +18,7 @@ forgot_router = APIRouter(
 )
 
 
-@forgot_router.post("")
+@forgot_router.post("", response_model=RecoveryResponse)
 def request_recovery(
     data: RecoveryPasswordRequest,
     service: PasswordRecoveryUseCase = Depends(get_password_recovery_use_case),
@@ -31,7 +31,7 @@ def request_recovery(
 
 
 
-@forgot_router.post("/reset-password")
+@forgot_router.post("/reset-password", response_model=RecoveryResponse)
 def reset_password(
     data: ResetPasswordRequest,
     service: PasswordRecoveryUseCase = Depends(get_password_recovery_use_case),

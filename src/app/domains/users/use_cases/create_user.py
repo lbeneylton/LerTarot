@@ -13,7 +13,8 @@ from app.domains.users.schemas import UserCreate
 # Verificador de email
 from app.domains.verify.services import CodeEmailService
 
-
+# Exceptions
+from app.core.exceptions import ConflictError
 
 class CreateUserService:
     def __init__(
@@ -39,6 +40,13 @@ class CreateUserService:
         # retornar User
         """
         with self.uow as uow:
+            
+            if uow.users.get_active_by_email(data.email):
+                raise ConflictError("Este e-mail já está cadastrado.")
+            
+            if data.username:
+                if uow.users.get_active_by_username(data.username):
+                    raise ConflictError("Já existe um usuário com esse nome")
 
             password_hash = self.hasher.hash(data.password)
 

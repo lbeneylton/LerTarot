@@ -84,9 +84,9 @@ class AuthenticationService:
         ):
             raise UnauthorizedError("Credenciais inválidas")
 
-        # Se email não verificado
-        if not user.email_verified:
-            raise VerificationError("Email não verificado")
+        # Se email não verificado TODO ajustar para 15 min de uso e só levantar 
+        # if not user.email_verified:
+        #     raise VerificationError("Email não foi verificado verificado")
 
         user = self._revoke_all_tokens(user)
         

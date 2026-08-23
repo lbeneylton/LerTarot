@@ -44,6 +44,6 @@ class RecoveryResponse(AuthResponse):
 class VerifyTokenRequest(BaseModel):
     token: str
     
-class ResetPasswordRequest(AuthResponse):
+class ResetPasswordRequest(BaseModel):
     token: str
     new_password: str
