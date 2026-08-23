@@ -7,7 +7,7 @@ from app.db.uow import SqlAlchemyUnitOfWork
 
 from app.security.hasher import Argon2Hasher, get_hasher
 from app.domains.verify.services import VerifyEmailService
-from providers.email_sender.interface import get_sender
+from providers.email_sender.get_sender import get_sender
 
 
 def get_uow(

@@ -1,15 +1,13 @@
-from providers.email_sender.base import EmailSender
-from providers.email_sender.mock import MockEmailSender
-from providers.email_sender.smtp import SMTPEmailSender
+from abc import ABC, abstractmethod
 
-from app.core.config import settings
-
-def get_sender() -> EmailSender:
-    """Retorna o provedor de e-mail adequado para o ambiente atual.
-    
-    Usa SMTPEmailSender apenas se as configurações de host e username estiverem preenchidas.
-    Caso contrário, retorna MockEmailSender por segurança para evitar quebras de inicialização.
-    """
-    if settings.email.host and settings.email.credentials.username:
-        return SMTPEmailSender()
-    return MockEmailSender()
+class EmailSender(ABC):
+    @abstractmethod
+    def send(self, to: str, subject: str, body: str) -> None:
+        """Envia um e-mail.
+        
+        Args:
+            to: E-mail do destinatário.
+            subject: Assunto do e-mail.
+            body: Conteúdo do e-mail (HTML ou texto simples).
+        """
+        pass

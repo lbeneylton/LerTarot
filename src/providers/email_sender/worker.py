@@ -7,7 +7,7 @@ from app.db.connection import SessionLocal
 from app.db.uow import SqlAlchemyUnitOfWork
 from app.domains.emails.models import MessageStatus
 
-from providers.email_sender.interface import get_sender
+from providers.email_sender.get_sender import get_sender
 
 logger = logging.getLogger("emails.worker")
 
