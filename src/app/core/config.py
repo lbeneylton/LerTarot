@@ -59,6 +59,8 @@ class Settings(BaseSettings):
     url_recovery_password: str = "localhost:8000/recovery-password"
     
     internal_api_key: str 
+    redis_url: str = "redis://localhost:6379/0"
+    discord_webhook_url: str = ""
 
     database: DatabaseSettings 
     auth: AuthSettings 

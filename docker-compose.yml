@@ -36,6 +36,8 @@ services:
       EMAIL__TIMEOUT: "${EMAIL__TIMEOUT:-10}"
       PAYMENT__API_KEY: "${PAYMENT__API_KEY:-payment_key}"
       PAYMENT__BASE_URL: "${PAYMENT__BASE_URL:-https://api.payment.com}"
+      REDIS_URL: "redis://redis:6379/0"
+      DISCORD_WEBHOOK_URL: "${DISCORD_WEBHOOK_URL:-}"
     ports:
       - "8000:8000"
     restart: unless-stopped
@@ -47,6 +49,8 @@ services:
     container_name: lertarot_worker
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     environment:
       ENV: "PROD"
@@ -60,9 +64,25 @@ services:
       EMAIL__TIMEOUT: "${EMAIL__TIMEOUT:-10}"
       PAYMENT__API_KEY: "${PAYMENT__API_KEY:-payment_key}"
       PAYMENT__BASE_URL: "${PAYMENT__BASE_URL:-https://api.payment.com}"
+      REDIS_URL: "redis://redis:6379/0"
+      DISCORD_WEBHOOK_URL: "${DISCORD_WEBHOOK_URL:-}"
     # Sobrescreve o comando padrão (uvicorn) para executar o worker CLI
     command: ["python", "-m", "app.modules.emails.cli"]
     restart: unless-stopped
 
+  redis:
+    image: redis:7-alpine
+    container_name: lertarot_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
 volumes:
   postgres_data:
+  redis_data:

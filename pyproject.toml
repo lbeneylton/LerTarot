@@ -22,11 +22,19 @@ dependencies = [
     "uuid7 (>=0.1.0,<0.2.0)",
     "uuid6 (>=2025.0.1,<2026.0.0)",
     "jinja2 (>=3.1.6,<4.0.0)",
+    "redis (>=8.1.0,<9.0.0)",
+    "httpx (>=0.28.1,<0.29.0)",
 ]
 
 
 
 [tool.poetry]
+name = "lertarot"
+version = "0.1.0"
+description="API da plataforma Ler Tarot"
+authors = [
+    {name = "Lucas Beneylton",email = "[lbeneylton@gmail.com]"}
+]
 packages = [
     { include = "app", from = "src" }
 ]
