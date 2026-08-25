@@ -1,10 +1,10 @@
 import secrets
 from datetime import datetime, timezone, timedelta
 
-from app.security.hasher import Argon2Hasher
+from app.core.contracts.uow import UnitOfWorkContract
+from app.core.contracts.security import PasswordHasherContract
 from app.core.exceptions import UnauthorizedError
 from app.modules.password_recovery.models import PasswordRecovery
-from app.db.uow import SqlAlchemyUnitOfWork
 from app.modules.emails.services import EmailService
 from app.modules.emails.models import EmailMessage
 from app.core.config import settings
@@ -13,8 +13,8 @@ from app.core.config import settings
 class PasswordRecoveryUseCase:
     def __init__(
         self,
-        uow: SqlAlchemyUnitOfWork,
-        hasher: Argon2Hasher,
+        uow: UnitOfWorkContract,
+        hasher: PasswordHasherContract,
         email_sender: EmailService 
     ) -> None:
         self.uow = uow

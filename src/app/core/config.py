@@ -58,7 +58,7 @@ class Settings(BaseSettings):
     env: str = "DEV"
     url_recovery_password: str = "localhost:8000/recovery-password"
     
-    internal_api_key: str = "default_internal_token_secret"
+    internal_api_key: str 
 
     database: DatabaseSettings 
     auth: AuthSettings 

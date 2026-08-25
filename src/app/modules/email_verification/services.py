@@ -1,10 +1,10 @@
 from datetime import datetime, timezone, timedelta
 import secrets
 
+from app.core.contracts.uow import UnitOfWorkContract
+from app.core.contracts.security import PasswordHasherContract
 from app.modules.users.models import User
 from app.modules.email_verification.models import CodeEmail
-from app.db.uow import SqlAlchemyUnitOfWork
-from app.security.hasher import Argon2Hasher
 from app.core.exceptions import VerificationError
 from app.modules.emails.models import EmailMessage
 
@@ -12,8 +12,8 @@ from app.modules.emails.models import EmailMessage
 class VerifyEmailService:
     def __init__(
         self, 
-        uow: SqlAlchemyUnitOfWork,
-        hasher: Argon2Hasher,
+        uow: UnitOfWorkContract,
+        hasher: PasswordHasherContract,
     ) -> None:        
         self.uow = uow
         self.hasher = hasher

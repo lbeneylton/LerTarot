@@ -1,12 +1,11 @@
 from datetime import datetime, timezone
 from dataclasses import dataclass
 
-from app.security.hasher import Argon2Hasher
-from app.security.jwt_provider import JwtTokenService
+from app.core.contracts.uow import UnitOfWorkContract
+from app.core.contracts.security import PasswordHasherContract, TokenServiceContract
 from app.core.exceptions import UnauthorizedError, ConflictError
 from app.modules.users.models import User, Client, Reader, UserRole
 from app.modules.users.schemas import UserCreate, TokensResponse
-from app.db.uow import SqlAlchemyUnitOfWork
 from app.modules.email_verification.services import VerifyEmailService
 from app.modules.emails.models import EmailMessage
 
@@ -21,8 +20,8 @@ class CreatedUser:
 class CreateUserService:
     def __init__(
         self,
-        uow: SqlAlchemyUnitOfWork, 
-        hasher: Argon2Hasher, 
+        uow: UnitOfWorkContract, 
+        hasher: PasswordHasherContract, 
         email_verificator: VerifyEmailService
     ) -> None:
         self.uow = uow
@@ -99,9 +98,9 @@ class CreateUserService:
 class AuthenticationService:
     def __init__(
         self,
-        uow: SqlAlchemyUnitOfWork,
-        hasher: Argon2Hasher,
-        provider_token: JwtTokenService,
+        uow: UnitOfWorkContract,
+        hasher: PasswordHasherContract,
+        provider_token: TokenServiceContract,
     ) -> None:
         self.uow = uow
         self.hasher = hasher
@@ -119,7 +118,7 @@ class AuthenticationService:
             )
         )
 
-    async def _revoke_all_tokens(self, uow_instance, user: User) -> User:
+    async def _revoke_all_tokens(self, uow_instance: UnitOfWorkContract, user: User) -> User:
         user.token_version += 1
         await uow_instance.users.save(user)
         return user
