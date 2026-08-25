@@ -26,7 +26,7 @@ services:
         condition: service_healthy
     environment:
       ENV: "PROD"
-      DATABASE__URL: "${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-lertarot}"
+      DATABASE__URL: "postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-lertarot}"
       AUTH__SECRET_KEY: "${AUTH__SECRET_KEY:-your_super_secret_key_here}"
       INTERNAL_API_KEY: "${INTERNAL_API_KEY:-your_internal_api_key_here}"
       EMAIL__HOST: "${EMAIL__HOST:-smtp.example.com}"
@@ -54,7 +54,7 @@ services:
         condition: service_healthy
     environment:
       ENV: "PROD"
-      DATABASE__URL: "${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-lertarot}"
+      DATABASE__URL: "postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-lertarot}"
       AUTH__SECRET_KEY: "${AUTH__SECRET_KEY:-your_super_secret_key_here}"
       INTERNAL_API_KEY: "${INTERNAL_API_KEY:-your_internal_api_key_here}"
       EMAIL__HOST: "${EMAIL__HOST:-smtp.example.com}"

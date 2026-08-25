@@ -23,7 +23,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from app.core.config import settings
-from app.db.registry import Base
+from app.db.base import Base
+import app.db.registry  # noqa: F401 - Loads the models so Base.metadata knows about them
 
 # add your model's MetaData object here
 # for 'autogenerate' support
