@@ -1,0 +1,68 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: lertarot_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-lertarot}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-lertarot}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lertarot_api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ENV: "PROD"
+      DATABASE__URL_PROD: "${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-lertarot}"
+      AUTH__SECRET_KEY: "${AUTH__SECRET_KEY:-your_super_secret_key_here}"
+      INTERNAL_API_KEY: "${INTERNAL_API_KEY:-your_internal_api_key_here}"
+      EMAIL__HOST: "${EMAIL__HOST:-smtp.example.com}"
+      EMAIL__PORT: "${EMAIL__PORT:-587}"
+      EMAIL__CREDENTIALS__USERNAME: "${EMAIL__CREDENTIALS__USERNAME:-user}"
+      EMAIL__CREDENTIALS__PASSWORD: "${EMAIL__CREDENTIALS__PASSWORD:-pass}"
+      EMAIL__TIMEOUT: "${EMAIL__TIMEOUT:-10}"
+      PAYMENT__API_KEY: "${PAYMENT__API_KEY:-payment_key}"
+      PAYMENT__BASE_URL: "${PAYMENT__BASE_URL:-https://api.payment.com}"
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lertarot_worker
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ENV: "PROD"
+      DATABASE__URL_PROD: "${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-lertarot}"
+      AUTH__SECRET_KEY: "${AUTH__SECRET_KEY:-your_super_secret_key_here}"
+      INTERNAL_API_KEY: "${INTERNAL_API_KEY:-your_internal_api_key_here}"
+      EMAIL__HOST: "${EMAIL__HOST:-smtp.example.com}"
+      EMAIL__PORT: "${EMAIL__PORT:-587}"
+      EMAIL__CREDENTIALS__USERNAME: "${EMAIL__CREDENTIALS__USERNAME:-user}"
+      EMAIL__CREDENTIALS__PASSWORD: "${EMAIL__CREDENTIALS__PASSWORD:-pass}"
+      EMAIL__TIMEOUT: "${EMAIL__TIMEOUT:-10}"
+      PAYMENT__API_KEY: "${PAYMENT__API_KEY:-payment_key}"
+      PAYMENT__BASE_URL: "${PAYMENT__BASE_URL:-https://api.payment.com}"
+    # Sobrescreve o comando padrão (uvicorn) para executar o worker CLI
+    command: ["python", "-m", "app.modules.emails.cli"]
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

@@ -12,6 +12,8 @@ URL_DATABASE = settings.database.url
 async_engine = create_async_engine(
     URL_DATABASE,
     pool_pre_ping=True,
+    pool_size=10,
+    max_overflow=20,
 )
 
 AsyncSessionLocal = async_sessionmaker(
