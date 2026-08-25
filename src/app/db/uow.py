@@ -1,14 +1,16 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.domains.users.repo import UserRepo
-from app.domains.verify.repo import CodeEmailRepo
-from app.domains.users.values.providers.repo import ProviderRepo
-from app.domains.users.values.password_recovery.repo import PasswordRecoveryRepo
-from app.domains.emails.repo import EmailMessageRepo
+from app.modules.users.repo import UserRepo
+from app.modules.email_verification.repo import CodeEmailRepo
+from app.modules.password_recovery.repo import PasswordRecoveryRepo
+from app.modules.emails.repo import EmailMessageRepo
 
 
 class SqlAlchemyUnitOfWork:
-    """Unit of Work Assíncrono com suporte a async with context manager."""
+    """Unit of Work Assíncrono com suporte a async with context manager.
+    
+    Controle ÚNICO de transações (commit/rollback) da aplicação.
+    """
     
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -16,7 +18,6 @@ class SqlAlchemyUnitOfWork:
         self.users = UserRepo(session)
         self.email_codes = CodeEmailRepo(session)
         self.emails = EmailMessageRepo(session)
-        self.providers = ProviderRepo(session)
         self.password_recovery = PasswordRecoveryRepo(session)
 
     async def __aenter__(self) -> "SqlAlchemyUnitOfWork":
@@ -31,7 +32,6 @@ class SqlAlchemyUnitOfWork:
         finally:
             await self.session.close()
 
-    # Suporte síncrono legado para retrocompatibilidade em testes/worker caso necessário
     def __enter__(self) -> "SqlAlchemyUnitOfWork":
         return self
 

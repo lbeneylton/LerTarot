@@ -1,8 +1,7 @@
-"""Documento para encaminhar os models para o alembic"""
-from app.domains.users.models import User, Client, Reader
-from app.domains.catalogs.models import Catalog
-from app.domains.verify.models import CodeEmail
-from app.domains.emails.models import EmailMessage, MessageStatus
+"""Registro de modelos SQLAlchemy para o Alembic."""
 
-from app.domains.users.values.providers.models import Provider
-from app.domains.users.values.password_recovery.models import PasswordRecovery
+from app.modules.users.models import User, Client, Reader
+from app.modules.email_verification.models import CodeEmail
+from app.modules.password_recovery.models import PasswordRecovery
+from app.modules.emails.models import EmailMessage, MessageStatus
+from app.modules.catalogs.models import Catalog

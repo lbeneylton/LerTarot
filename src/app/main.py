@@ -6,11 +6,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.exceptions import AppException
 from app.core.handler import app_exception_handler
 
-from api.auth import auth_router
-from api.forgot_password import forgot_router
-from api.email_verify import verify_router
-from app.domains.emails.router import email_router
-from app.domains.emails.worker import email_worker
+from app.modules.auth.router import auth_router
+from app.modules.password_recovery.router import forgot_router
+from app.modules.email_verification.router import verify_router
+from app.modules.emails.router import email_router
+from app.modules.emails.worker import email_worker
 
 
 @asynccontextmanager

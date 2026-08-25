@@ -2,7 +2,7 @@ import pytest
 from fastapi import APIRouter, Depends
 
 from app.api.dependencies import get_current_user, RoleChecker
-from app.domains.users.models import User, UserRole
+from app.modules.users.models import User, UserRole
 from app.main import app
 
 dummy_auth_router = APIRouter()

@@ -1,4 +1,3 @@
-from uuid import UUID
 from fastapi import Depends, Header, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,12 +8,12 @@ from app.db.connection import get_session
 from app.db.uow import SqlAlchemyUnitOfWork
 from app.security.hasher import Argon2Hasher, get_hasher
 from app.security.jwt_provider import JwtTokenService, get_token_provider
-from app.domains.users.models import User, UserRole
-from app.domains.users.use_cases.create_user import CreateUserService
-from app.domains.users.use_cases.authentication import AuthenticationService
-from app.domains.users.use_cases.password_recovery import PasswordRecoveryUseCase
-from app.domains.emails.services import EmailService
-from app.domains.verify.services import VerifyEmailService
+
+from app.modules.users.models import User, UserRole
+from app.modules.auth.use_cases import CreateUserService, AuthenticationService
+from app.modules.password_recovery.use_cases import PasswordRecoveryUseCase
+from app.modules.email_verification.services import VerifyEmailService
+from app.modules.emails.services import EmailService
 
 security = HTTPBearer(auto_error=False)
 

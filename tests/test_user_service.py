@@ -1,13 +1,13 @@
 import pytest
 
 from app.core.exceptions import ConflictError
-from app.domains.users.models import UserRole
-from app.domains.users.schemas import UserCreate
-from app.domains.users.use_cases.create_user import CreateUserService
+from app.modules.users.models import UserRole
+from app.modules.users.schemas import UserCreate
+from app.modules.auth.use_cases import CreateUserService
+from app.modules.email_verification.services import VerifyEmailService
 from app.db.session import AsyncSessionLocal
 from app.db.uow import SqlAlchemyUnitOfWork
 from app.security.hasher import Argon2Hasher
-from app.domains.verify.services import VerifyEmailService
 
 
 @pytest.mark.anyio

@@ -4,10 +4,10 @@ from fastapi import status
 from app.core.config import settings
 from app.db.session import AsyncSessionLocal
 from app.db.uow import SqlAlchemyUnitOfWork
-from app.domains.emails.models import EmailMessage, MessageStatus
-from app.domains.emails.services import EmailService
-from app.domains.emails.schemas import MessageRequest
-from app.domains.emails.worker import EmailWorker
+from app.modules.emails.models import EmailMessage, MessageStatus
+from app.modules.emails.services import EmailService
+from app.modules.emails.schemas import MessageRequest
+from app.modules.emails.worker import EmailWorker
 
 
 @pytest.mark.anyio
