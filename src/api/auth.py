@@ -1,24 +1,15 @@
-# FastAPI
 from fastapi import APIRouter, Response, Cookie, Depends, status
 
-# Schemas
 from app.domains.users.schemas import (
     UserCreate,
     LoginRequest,
     AuthResponse
 )
-
-# Cookies manager
 from app.security.cookies import cookie_manager
-
-# Service e dependencies
 from app.domains.users.use_cases import CreateUserService, AuthenticationService
-from app.domains.users.dependencies import get_auth_service, get_create_service
+from app.api.dependencies import get_auth_service, get_create_service
 
-
-# Roteador
 auth_router = APIRouter(prefix="/auth", tags=["Auth"])
-
 
 
 @auth_router.post(
@@ -27,17 +18,16 @@ auth_router = APIRouter(prefix="/auth", tags=["Auth"])
     response_model=AuthResponse,
     summary="Registro e login de um usuário"
 )
-def register(
-    data : UserCreate,
+async def register(
+    data: UserCreate,
     response: Response,
     create_service: CreateUserService = Depends(get_create_service),
     login_service: AuthenticationService = Depends(get_auth_service)
 ):
-    user = create_service.create_user(data)
+    user = await create_service.create_user(data)
+    login_identifier = user.email or user.username or ""
     
-    login_identifier = user.email or user.username
-    
-    tokens = login_service.login(
+    tokens = await login_service.login(
         email_or_username=login_identifier,
         password=data.password,
     )
@@ -57,12 +47,12 @@ def register(
     response_model=AuthResponse,
     summary="Login de um usuário"
 )
-def login(
+async def login(
     data: LoginRequest,
     response: Response,
     service: AuthenticationService = Depends(get_auth_service),
 ):
-    tokens = service.login(
+    tokens = await service.login(
         data.email_or_username,
         data.password,
     )
@@ -76,20 +66,20 @@ def login(
     return {
         "message": "Login realizado com sucesso"
     }
-    
-    
+
+
 @auth_router.post(
     "/refresh",
     status_code=status.HTTP_202_ACCEPTED,
     response_model=AuthResponse,
     summary="Refresh e revogação dos tokens"
 )
-def refresh(
+async def refresh(
     response: Response,
     refresh_token: str | None = Cookie(default=None),
     service: AuthenticationService = Depends(get_auth_service),
 ):
-    tokens = service.refresh(refresh_token)
+    tokens = await service.refresh(refresh_token)
 
     cookie_manager.set_auth_cookies(
         response=response,
@@ -100,20 +90,20 @@ def refresh(
     return {
         "message": "Token renovado"
     }
-    
-    
+
+
 @auth_router.post(
     "/logout",
     status_code=status.HTTP_202_ACCEPTED,
     response_model=AuthResponse,
     summary="Revogação dos tokens"
 )
-def logout(
+async def logout(
     response: Response,
     refresh_token: str | None = Cookie(default=None),
     service: AuthenticationService = Depends(get_auth_service),
 ):
-    service.logout(refresh_token)
+    await service.logout(refresh_token)
     cookie_manager.clear_auth_cookies(response)
 
     return {

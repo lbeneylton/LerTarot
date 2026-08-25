@@ -1,72 +1,51 @@
 import pytest
 
 from app.core.exceptions import ConflictError
-from app.users.enums import UserType
-from app.users.models import Client, Reader, User
-from app.users.schemas import UserCreate
-from app.users.services import UserService, build_user
+from app.domains.users.models import UserRole
+from app.domains.users.schemas import UserCreate
+from app.domains.users.use_cases.create_user import CreateUserService
+from app.db.session import AsyncSessionLocal
+from app.db.uow import SqlAlchemyUnitOfWork
+from app.security.hasher import Argon2Hasher
+from app.domains.verify.services import VerifyEmailService
 
 
-def test_build_user_client():
-    data = UserCreate(
-        name="Ana",
-        email="ana@example.com",
-        password="senha1234",
-        user_type=UserType.client,
-    )
-    user = build_user(data)
-    assert isinstance(user, Client)
-    assert user.user_type == UserType.client
+@pytest.mark.anyio
+async def test_create_user_persists() -> None:
+    async with AsyncSessionLocal() as session:
+        uow = SqlAlchemyUnitOfWork(session)
+        hasher = Argon2Hasher()
+        email_verificator = VerifyEmailService(uow, hasher)
+        service = CreateUserService(uow, hasher, email_verificator)
+
+        data = UserCreate(
+            username="maria",
+            email="maria@example.com",
+            password="senha1234",
+            role=UserRole.CLIENTE,
+        )
+        created = await service.create_user(data)
+
+        assert created.user_id is not None
+        assert created.email == "maria@example.com"
+        assert created.username == "maria"
 
 
-def test_build_user_reader():
-    data = UserCreate(
-        name="João",
-        email="joao@example.com",
-        password="senha1234",
-        user_type=UserType.reader,
-        bio="Tarólogo há 10 anos",
-    )
-    user = build_user(data)
-    assert isinstance(user, Reader)
-    assert user.bio == "Tarólogo há 10 anos"
+@pytest.mark.anyio
+async def test_create_user_duplicate_email_raises_conflict() -> None:
+    async with AsyncSessionLocal() as session:
+        uow = SqlAlchemyUnitOfWork(session)
+        hasher = Argon2Hasher()
+        email_verificator = VerifyEmailService(uow, hasher)
+        service = CreateUserService(uow, hasher, email_verificator)
 
+        data = UserCreate(
+            username="duplicada",
+            email="duplicada@example.com",
+            password="senha1234",
+            role=UserRole.CLIENTE,
+        )
+        await service.create_user(data)
 
-def test_build_user_admin():
-    data = UserCreate(
-        name="Admin",
-        email="admin@example.com",
-        password="senha1234",
-        user_type=UserType.admin,
-    )
-    user = build_user(data)
-    assert type(user) is User
-    assert user.user_type == UserType.admin
-
-
-def test_create_user_persists(session_factory):
-    service = UserService(session_factory=session_factory)
-    data = UserCreate(
-        name="Maria",
-        email="maria@example.com",
-        password="senha1234",
-        user_type=UserType.client,
-    )
-    user = service.create_user(data)
-
-    assert user.user_id is not None
-    assert user.email == "maria@example.com"
-
-
-def test_create_user_duplicate_email_raises_conflict(session_factory):
-    service = UserService(session_factory=session_factory)
-    data = UserCreate(
-        name="Maria",
-        email="duplicada@example.com",
-        password="senha1234",
-        user_type=UserType.client,
-    )
-    service.create_user(data)
-
-    with pytest.raises(ConflictError):
-        service.create_user(data)
+        with pytest.raises(ConflictError):
+            await service.create_user(data)

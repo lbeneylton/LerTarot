@@ -7,7 +7,8 @@ from sqlalchemy import (
     DateTime,
     Enum as SQLEnum,
     func,
-    JSON
+    JSON,
+    Text
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -24,11 +25,9 @@ class MessageStatus(str, Enum):
 
 class EmailMessage(Base):
     """
-    idempotency_key\n
-    to\n
-    subject\n
-    body (template)\n
-    variables NULLABLE\n
+    Representação da fila Outbox de mensagens de e-mail.
+    - body: guarda o NOME do template (ex: 'verify_email', 'password_reset')
+    - variables: dicionário JSON com as variáveis para renderização
     """
     
     __tablename__ = "email_messages"
@@ -58,7 +57,13 @@ class EmailMessage(Base):
     )
     
     body: Mapped[str] = mapped_column(
+        Text,
         nullable=False
+    )
+
+    template: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True
     )
     
     variables = mapped_column(JSON, nullable=True)
@@ -84,11 +89,6 @@ class EmailMessage(Base):
         index=True
     )
     
-      
-    # ---------------------------------------------------------
-    # Controle de processamento
-    # ---------------------------------------------------------
-
     processing_started_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,
@@ -107,5 +107,6 @@ class EmailMessage(Base):
     )
     
     error: Mapped[str | None] = mapped_column(
+        Text,
         nullable=True
     )

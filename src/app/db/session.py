@@ -1,24 +1,35 @@
-"""Gerador de sessions"""
-# Funções para gerar engine e sessões
+"""Gerador de sessions assíncronas do SQLAlchemy."""
+
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-# Importação do objeto de configuração do banco
 from app.core.config import settings
 
 URL_DATABASE = settings.database.url
 
-engine = create_engine(
-    URL_DATABASE, 
+# Async Engine e AsyncSession
+async_engine = create_async_engine(
+    URL_DATABASE,
     pool_pre_ping=True,
-    connect_args={
-        "prepare_threshold": None,
-    }
-    
+)
+
+AsyncSessionLocal = async_sessionmaker(
+    bind=async_engine,
+    class_=AsyncSession,
+    autocommit=False,
+    autoflush=False,
+    expire_on_commit=False,
+)
+
+# Engine Síncrona (para migrações Alembic ou scripts utilitários)
+engine = create_engine(
+    URL_DATABASE,
+    pool_pre_ping=True,
 )
 
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
-    bind=engine
+    bind=engine,
 )

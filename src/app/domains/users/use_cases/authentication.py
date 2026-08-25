@@ -1,22 +1,9 @@
-# Classe para hashes
 from app.security.hasher import Argon2Hasher
 from app.security.jwt_provider import JwtTokenService
-
-# Erros
-from app.core.exceptions import (
-    UnauthorizedError, 
-    VerificationError
-)
-
-# Tipos e modelos
+from app.core.exceptions import UnauthorizedError
 from app.domains.users.models import User
-
-# UOW
 from app.db.uow import SqlAlchemyUnitOfWork
-
-# Schemas
 from app.domains.users.schemas import TokensResponse
-
 
 
 class AuthenticationService:
@@ -31,9 +18,6 @@ class AuthenticationService:
         self.provider_token = provider_token
 
     def _generate_tokens(self, user: User) -> TokensResponse:
-        """
-        Gera access token e refresh token para o usuário.
-        """
         return TokensResponse(
             access_token=self.provider_token.create_access_token(
                 user.user_id,
@@ -44,127 +28,60 @@ class AuthenticationService:
                 user.token_version
             )
         )
-    
-    def _revoke_all_tokens(self, user: User) -> User:
-        # Revoga todos os tokens anteriores
+
+    async def _revoke_all_tokens(self, uow_instance, user: User) -> User:
         user.token_version += 1
-        self.uow.users.save(user)
+        await uow_instance.users.save(user)
         return user
 
-    def login(self, email_or_username: str, password: str) -> TokensResponse:
-        """
-        Autentica o usuário pelo e-mail ou username.
+    async def login(self, email_or_username: str, password: str) -> TokensResponse:
+        async with self.uow as uow:
+            if "@" in email_or_username:
+                user = await uow.users.get_active_by_email(email_or_username)
+            else:
+                user = await uow.users.get_active_by_username(email_or_username)
 
-        Retorna:
-            {
-                "access_token": "...",
-                "refresh_token": "..."
-            }
+            if user is None:
+                raise UnauthorizedError("Credenciais inválidas")
 
-        Lança UnauthorizedError caso:
-        - usuário não exista;
-        - usuário esteja inativo;
-        - senha esteja incorreta.
-        """
-        if "@" in email_or_username:
-            user = self.uow.users.get_active_by_email(
-                email_or_username
-            )
-        else:
-            user = self.uow.users.get_active_by_username(
-                email_or_username
-            )
+            if not self.hasher.verify_hash(password, user.password_hash):
+                raise UnauthorizedError("Credenciais inválidas")
 
-        if user is None:
-            raise UnauthorizedError("Credenciais inválidas")
+            user = await self._revoke_all_tokens(uow, user)
+            return self._generate_tokens(user)
 
-        if not self.hasher.verify_hash(
-            password,
-            user.password_hash
-        ):
-            raise UnauthorizedError("Credenciais inválidas")
-
-        # Se email não verificado TODO ajustar para 15 min de uso e só levantar 
-        # if not user.email_verified:
-        #     raise VerificationError("Email não foi verificado verificado")
-
-        user = self._revoke_all_tokens(user)
-        
-        return self._generate_tokens(user)
-                
-    def refresh(self, refresh_token: str | None) -> TokensResponse:
-        """
-        Gera um novo access token e
-        com Refresh Token Rotation 
-        gera um novo refresh token também.
-
-        O refresh token não é armazenado no banco.
-        Portanto, sua validade depende exclusivamente
-        da assinatura e expiração do JWT.
-
-        O JwtTokenService precisa disponibilizar um método
-        para validar/decodificar refresh tokens.
-        """
+    async def refresh(self, refresh_token: str | None) -> TokensResponse:
         if not refresh_token:
-            raise UnauthorizedError(
-                "Refresh token ausente"
-            )
-        
-        payload = self.provider_token.decode_refresh_token(
-            refresh_token
-        )
+            raise UnauthorizedError("Refresh token ausente")
 
+        payload = self.provider_token.decode_refresh_token(refresh_token)
         user_id = int(payload["sub"])
-        
-        with self.uow as uow:
-            user = uow.users.get_active_by_id(user_id)
+
+        async with self.uow as uow:
+            user = await uow.users.get_active_by_id(user_id)
             if user is None:
                 raise UnauthorizedError("Usuário não encontrado")
 
-            # Compara a versão do token
-            if payload["token_version"] != user.token_version:
-                raise UnauthorizedError(
-                    "Token revogado"
-                )
+            if str(payload.get("token_version")) != str(user.token_version):
+                raise UnauthorizedError("Token revogado")
 
             user.token_version += 1
-            
-            uow.users.save(user)
-            uow.session.flush()
+            await uow.users.save(user)
+            await uow.session.flush()
 
             return self._generate_tokens(user)
 
-    def logout(self, refresh_token: str | None) -> str:
-        """
-        Logout.
-
-        - Verifica se existe um refresh_token
-        - Decode o token refresh
-        - Verifica se existe o user  
-        - Revoga Token
-        - Apaga os Tokens dos cookies
-        """
+    async def logout(self, refresh_token: str | None) -> str:
         if not refresh_token:
-            raise UnauthorizedError(
-                "Refresh token ausente"
-            )
-          
-        payload = self.provider_token.decode_refresh_token(
-            refresh_token
-        )
-        
+            raise UnauthorizedError("Refresh token ausente")
+
+        payload = self.provider_token.decode_refresh_token(refresh_token)
         user_id = int(payload["sub"])
-        user = self.uow.users.get_active_by_id(user_id)
-        if not user:
-            raise UnauthorizedError(
-                "Usuário não encontrado"
-            )
 
-            
-        self._revoke_all_tokens(user)
-        # APAGAR COOKIES
-        return "Usuário deslogado"
+        async with self.uow as uow:
+            user = await uow.users.get_active_by_id(user_id)
+            if not user:
+                raise UnauthorizedError("Usuário não encontrado")
 
-     
-    
-    
+            await self._revoke_all_tokens(uow, user)
+            return "Usuário deslogado"

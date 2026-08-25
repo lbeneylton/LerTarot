@@ -1,67 +1,70 @@
 import os
 
-os.environ["DATABASE_URL"] = "sqlite://"
+os.environ["DATABASE_URL"] = "sqlite+aiosqlite://"
+os.environ["DEV_DATABASE_URL"] = "sqlite+aiosqlite://"
+os.environ["PROD_DATABASE_URL"] = "sqlite+aiosqlite://"
 
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from httpx import AsyncClient, ASGITransport
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.pool import StaticPool
 
-import app.db.registry  # noqa: F401 — registra models no metadata
+import app.db.registry  # noqa: F401
 from app.db.base import Base
 from app.db import session as session_module
+from app.db.connection import get_session
 
-# SQLite em memória exige StaticPool para compartilhar o mesmo banco entre conexões
-session_module.engine = create_engine(
-    "sqlite://",
+test_async_engine = create_async_engine(
+    "sqlite+aiosqlite://",
     connect_args={"check_same_thread": False},
     poolclass=StaticPool,
 )
-session_module.SessionLocal = sessionmaker(
-    bind=session_module.engine,
+
+TestAsyncSessionLocal = async_sessionmaker(
+    bind=test_async_engine,
+    class_=AsyncSession,
     autocommit=False,
     autoflush=False,
+    expire_on_commit=False,
 )
 
-from app.main import app  # noqa: E402 — após reconfigurar o engine de teste
+session_module.async_engine = test_async_engine
+session_module.AsyncSessionLocal = TestAsyncSessionLocal
+
+from app.main import app  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
-def db_schema():
-    Base.metadata.drop_all(session_module.engine)
-    Base.metadata.create_all(session_module.engine)
+async def db_schema():
+    async with test_async_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+        await conn.run_sync(Base.metadata.create_all)
     yield
 
 
 @pytest.fixture
-def engine():
-    eng = create_engine(
-        "sqlite://",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,
-    )
-    Base.metadata.create_all(eng)
-    yield eng
-    Base.metadata.drop_all(eng)
-    eng.dispose()
+async def async_client():
+    async def _override_get_session():
+        async with TestAsyncSessionLocal() as session:
+            try:
+                yield session
+                await session.commit()
+            except Exception:
+                await session.rollback()
+                raise
 
-
-@pytest.fixture
-def session_factory(engine):
-    return sessionmaker(bind=engine, autocommit=False, autoflush=False)
-
-
-@pytest.fixture
-def client():
-    return TestClient(app)
+    app.dependency_overrides[get_session] = _override_get_session
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        yield ac
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture
 def user_payload():
     return {
-        "name": "Maria Silva",
+        "username": "mariasilva",
         "email": "maria@example.com",
         "password": "senha1234",
-        "user_type": "client",
+        "role": "CLIENTE",
     }
