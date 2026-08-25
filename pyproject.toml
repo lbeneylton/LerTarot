@@ -29,12 +29,6 @@ dependencies = [
 
 
 [tool.poetry]
-name = "lertarot"
-version = "0.1.0"
-description="API da plataforma Ler Tarot"
-authors = [
-    {name = "Lucas Beneylton",email = "[lbeneylton@gmail.com]"}
-]
 packages = [
     { include = "app", from = "src" }
 ]

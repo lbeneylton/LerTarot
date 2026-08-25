@@ -9,13 +9,16 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Install poetry
-RUN pip install --no-cache-dir poetry==1.8.3
+RUN pip install --no-cache-dir poetry==2.2.1
 
 # Configure poetry to not create a virtual environment, as the container itself provides isolation
 RUN poetry config virtualenvs.create false
 
 # Copy dependency files
-COPY pyproject.toml poetry.lock ./
+COPY pyproject.toml poetry.lock README.md ./
+
+# Copy source because Poetry installs the current project
+COPY ./src ./src
 
 # Install dependencies (only main dependencies, no dev dependencies)
 RUN poetry install --only main --no-interaction --no-ansi

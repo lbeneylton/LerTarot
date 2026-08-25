@@ -11,7 +11,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-lertarot}"]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-lertarot}" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -26,7 +26,7 @@ services:
         condition: service_healthy
     environment:
       ENV: "PROD"
-      DATABASE__URL_PROD: "${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-lertarot}"
+      DATABASE__URL: "${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-lertarot}"
       AUTH__SECRET_KEY: "${AUTH__SECRET_KEY:-your_super_secret_key_here}"
       INTERNAL_API_KEY: "${INTERNAL_API_KEY:-your_internal_api_key_here}"
       EMAIL__HOST: "${EMAIL__HOST:-smtp.example.com}"
@@ -54,7 +54,7 @@ services:
         condition: service_healthy
     environment:
       ENV: "PROD"
-      DATABASE__URL_PROD: "${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-lertarot}"
+      DATABASE__URL: "${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-lertarot}"
       AUTH__SECRET_KEY: "${AUTH__SECRET_KEY:-your_super_secret_key_here}"
       INTERNAL_API_KEY: "${INTERNAL_API_KEY:-your_internal_api_key_here}"
       EMAIL__HOST: "${EMAIL__HOST:-smtp.example.com}"
@@ -67,7 +67,7 @@ services:
       REDIS_URL: "redis://redis:6379/0"
       DISCORD_WEBHOOK_URL: "${DISCORD_WEBHOOK_URL:-}"
     # Sobrescreve o comando padrão (uvicorn) para executar o worker CLI
-    command: ["python", "-m", "app.modules.emails.cli"]
+    command: [ "python", "-m", "app.modules.emails.cli" ]
     restart: unless-stopped
 
   redis:
@@ -78,7 +78,7 @@ services:
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 3s
       retries: 5
