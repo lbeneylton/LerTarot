@@ -95,3 +95,20 @@ class PasswordRecoveryUseCase:
                 return
 
             raise UnauthorizedError("Token de recuperação inválido ou expirado")
+
+    async def verify_token(self, token: str) -> None:
+        """Verifica se o token é válido e não expirou."""
+        async with self.uow as uow:
+            recoveries = await uow.password_recovery.get_active_tokens()
+            now = datetime.now(timezone.utc)
+
+            for recovery in recoveries:
+                if recovery.expires_at <= now:
+                    continue
+
+                if self.hasher.verify_hash(token, recovery.token_hash):
+                    user = await uow.users.get_active_by_id(recovery.user_id)
+                    if user:
+                        return
+
+            raise UnauthorizedError("Token de recuperação inválido ou expirado")

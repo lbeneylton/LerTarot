@@ -33,3 +33,12 @@ async def reset_password(
         new_password=data.new_password,
     )
     return RecoveryResponse(message="Senha alterada com sucesso")
+
+
+@forgot_router.get("/verify-token/{token}", response_model=RecoveryResponse)
+async def verify_token(
+    token: str,
+    service: PasswordRecoveryUseCase = Depends(get_password_recovery_use_case),
+):
+    await service.verify_token(token)
+    return RecoveryResponse(message="Token válido")
