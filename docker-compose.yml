@@ -41,6 +41,7 @@ services:
       DISCORD_WEBHOOK__URL_ERROR: "${DISCORD_WEBHOOK__URL_ERROR:-}"
       DISCORD_WEBHOOK__URL_USERS: "${DISCORD_WEBHOOK__URL_USERS:-}"
       DISCORD_WEBHOOK__URL_EMAILS: "${DISCORD_WEBHOOK__URL_EMAILS:-}"
+      URL_RECOVERY_PASSWORD: "${URL_RECOVERY_PASSWORD:-http://localhost:3000/reset-password}"
     ports:
       - "8000:8000"
     restart: unless-stopped
@@ -71,6 +72,7 @@ services:
       DISCORD_WEBHOOK__URL_ERROR: "${DISCORD_WEBHOOK__URL_ERROR:-}"
       DISCORD_WEBHOOK__URL_USERS: "${DISCORD_WEBHOOK__URL_USERS:-}"
       DISCORD_WEBHOOK__URL_EMAILS: "${DISCORD_WEBHOOK__URL_EMAILS:-}"
+      URL_RECOVERY_PASSWORD: "${URL_RECOVERY_PASSWORD:-http://localhost:3000/reset-password}"
     # Sobrescreve o comando padrão (uvicorn) para executar o worker CLI
     command: [ "python", "-m", "app.modules.emails.cli" ]
     restart: unless-stopped

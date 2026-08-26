@@ -50,7 +50,7 @@ class CreateUserService:
                     email=data.email,
                     password_hash=password_hash,
                 )
-                welcome_body = "welcome_cliente"
+                welcome_body = "Olá, seja bem vindo ao Ler Tarot! Esperamos que você encontre as respostas que procura."
                 welcome_prefix = "welcome_cliente"
             elif data.role == UserRole.READER:
                 user = Reader(
@@ -58,7 +58,7 @@ class CreateUserService:
                     email=data.email,
                     password_hash=password_hash,
                 )
-                welcome_body = "welcome_tarologo"
+                welcome_body = "Olá, seja bem vindo ao Ler Tarot! Acesse o dashboard para configurar seu perfil e começar a atender."
                 welcome_prefix = "welcome_tarologo"
             else:
                 user = User(
@@ -85,7 +85,7 @@ class CreateUserService:
                     idempotency_key=key,
                     to=new_user.email,
                     subject="Seja bem vindo ao Ler Tarot",
-                    template=welcome_body,
+                    template=welcome_prefix,
                     body=welcome_body,
                     variables={
                         "user_name": new_user.username or "Usuário",
@@ -95,8 +95,6 @@ class CreateUserService:
                 )
                 await uow.emails.save(message)
 
-            await self.email_verificator.send_code(new_user)
-            
             # Notifica auditoria de negócio (em background, sem prender a transação)
             await self.notifier.notify_new_user(user_name=new_user.username or "Sem nome", user_email=new_user.email)
             

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bem-vindo ao Ler Tarot</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; background-color: #090911; color: #f5f5f5; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #1a1828; padding: 30px; border-radius: 8px; text-align: center; border: 1px solid #e8c55e; }
+        h1 { color: #e8c55e; }
+        p { line-height: 1.6; font-size: 16px; color: #e2e8f0; }
+        .button { display: inline-block; margin-top: 20px; padding: 12px 24px; background-color: #e8c55e; color: #1a1828; text-decoration: none; font-weight: bold; border-radius: 4px; }
+        .footer { margin-top: 30px; font-size: 12px; color: #94a3b8; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>As cartas se abriram para você!</h1>
+        <p>Olá, <strong>{{ user_name }}</strong>!</p>
+        <p>Seja bem-vindo(a) ao <strong>Ler Tarot</strong>. É uma grande alegria tê-lo(a) conosco nesta jornada de autoconhecimento e espiritualidade.</p>
+        <p>Acesse seu painel agora mesmo para descobrir o que os astros e os arcanos reservam para o seu destino.</p>
+        <a href="https://{{ dashboard_url }}" class="button">Acessar Meu Painel</a>
+        
+        <p class="footer">Que a luz guie o seu caminho.<br>&copy; {{ year }} Ler Tarot. Todos os direitos reservados.</p>
+    </div>
+</body>
+</html>
