@@ -20,13 +20,9 @@ logger.addHandler(discord_handler)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Em modo local/dev, inicia o worker em segundo plano. Em produção, ele pode rodar via `cli.py`
-    worker_task = asyncio.create_task(email_worker.start())
-    try:
-        yield
-    finally:
-        email_worker.stop()
-        await worker_task
+    # Em ambiente Dockerizado, o worker roda no seu próprio container isolado
+    # Portanto, não iniciamos mais ele em background aqui.
+    yield
 
 
 app = FastAPI(
