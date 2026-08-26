@@ -117,20 +117,12 @@ class EmailWorker:
 
                     variables = dict(db_msg.variables or {})
 
-                    try:
-                        self.email_sender.send_template(
-                            to=db_msg.to,
-                            subject=db_msg.subject,
-                            template_name=template_name,
-                            variables=variables,
-                        )
-                    except Exception as t_err:
-                        logger.exception(f"FALHA NO TEMPLATE HTML '{template_name}'. Enviando texto puro fallback. Erro: {t_err}")
-                        self.email_sender.send_text(
-                            to=db_msg.to,
-                            subject=db_msg.subject,
-                            body=str(db_msg.body),
-                        )
+                    self.email_sender.send_template(
+                        to=db_msg.to,
+                        subject=db_msg.subject,
+                        template_name=template_name,
+                        variables=variables,
+                    )
 
                     db_msg.status = MessageStatus.SENT
                     db_msg.sent_at = datetime.now(timezone.utc)

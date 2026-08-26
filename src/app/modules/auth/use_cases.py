@@ -84,10 +84,10 @@ class CreateUserService:
                 message = EmailMessage(
                     idempotency_key=key,
                     to=new_user.email,
-                    subject="Seja bem-vindo ao Ler Tarot!",
-                    body=welcome_prefix,
+                    subject=welcome_body,
+                    template=welcome_prefix,
                     variables={
-                        "user_name": new_user.username or "Usuário",
+                        "user_name": new_user.username,
                         "year": datetime.now(timezone.utc).year,
                         "dashboard_url": "lertarot.com/dashboard",
                     },

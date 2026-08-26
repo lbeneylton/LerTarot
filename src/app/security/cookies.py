@@ -28,12 +28,16 @@ class CookieManager:
         access_token: str,
         refresh_token: str,
     ) -> None:
+        is_prod = settings.env.upper() == "PROD"
+        samesite_val = "none" if is_prod else "lax"
+        secure_val = True if is_prod else self.secure
+
         response.set_cookie(
             key="access_token",
             value=access_token,
             httponly=True,
-            secure=self.secure,
-            samesite="lax",
+            secure=secure_val,
+            samesite=samesite_val,
             max_age=self.access_age,
             path=ACCESS_PATH,
         )
@@ -42,21 +46,31 @@ class CookieManager:
             key="refresh_token",
             value=refresh_token,
             httponly=True,
-            secure=self.secure,
-            samesite="lax",
+            secure=secure_val,
+            samesite=samesite_val,
             max_age=self.refresh_age,
             path=REFRESH_PATH,
         )
 
     def clear_auth_cookies(self, response: Response) -> None:
+        is_prod = settings.env.upper() == "PROD"
+        samesite_val = "none" if is_prod else "lax"
+        secure_val = True if is_prod else self.secure
+
         response.delete_cookie(
             key="access_token",
             path=ACCESS_PATH,
+            samesite=samesite_val,
+            secure=secure_val,
+            httponly=True,
         )
 
         response.delete_cookie(
             key="refresh_token",
             path=REFRESH_PATH,
+            samesite=samesite_val,
+            secure=secure_val,
+            httponly=True,
         )
 
 

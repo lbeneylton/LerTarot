@@ -17,7 +17,7 @@ class DiscordNotifier(NotificationContract):
 
     @property
     def webhook_emails(self) -> str:
-        return settings.discord_webhook.url_emails
+        return settings.discord_webhook.url_emails or self.webhook_users
 
     async def notify_new_user(self, user_name: str, user_email: str) -> None:
         if not self.webhook_users:
@@ -52,9 +52,8 @@ class DiscordNotifier(NotificationContract):
         await self._send_async(self.webhook_emails, payload)
 
     async def _send_async(self, webhook_url: str, payload: dict[str, Any]) -> None:
-        """Dispara a requisição HTTP em background task para não bloquear o fluxo."""
-        loop = asyncio.get_running_loop()
-        loop.create_task(self._fire_and_forget(webhook_url, payload))
+        """Dispara a requisição HTTP para o Discord."""
+        await self._fire_and_forget(webhook_url, payload)
 
     async def _fire_and_forget(self, webhook_url: str, payload: dict[str, Any]) -> None:
         try:

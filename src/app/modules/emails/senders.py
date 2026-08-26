@@ -66,13 +66,7 @@ class SMTPEmailSender(EmailSender):
             server.quit()
 
     def send_text(self, to: str, subject: str, body: str) -> None:
-        self._validate(to, subject)
-        msg = MIMEMultipart()
-        msg["From"] = self.username or "noreply@lertarot.com"
-        msg["To"] = to
-        msg["Subject"] = subject
-        msg.attach(MIMEText(body or "", "plain", "utf-8"))
-        self._send_mime_message(to, subject, msg)
+        raise ValueError("Envio em texto puro desativado. Todos os e-mails da plataforma devem utilizar templates HTML.")
 
     def send_template(self, to: str, subject: str, template_name: str, variables: dict) -> None:
         self._validate(to, subject)
@@ -82,10 +76,13 @@ class SMTPEmailSender(EmailSender):
         template_obj = self.jinja_env.get_template(template_name)
         rendered_body = template_obj.render(**(variables or {}))
 
-        msg = MIMEMultipart()
+        msg = MIMEMultipart("alternative")
         msg["From"] = self.username or "noreply@lertarot.com"
         msg["To"] = to
         msg["Subject"] = subject
+
+        plain_text = f"Seja bem-vindo ao Ler Tarot. Acesse {variables.get('dashboard_url', 'lertarot.com')}."
+        msg.attach(MIMEText(plain_text, "plain", "utf-8"))
         msg.attach(MIMEText(rendered_body, "html", "utf-8"))
         self._send_mime_message(to, subject, msg)
 
