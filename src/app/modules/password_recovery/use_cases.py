@@ -3,7 +3,7 @@ from datetime import datetime, timezone, timedelta
 
 from app.core.contracts.uow import UnitOfWorkContract
 from app.core.contracts.security import PasswordHasherContract
-from app.core.exceptions import UnauthorizedError
+from app.core.exceptions import NotFoundError
 from app.modules.password_recovery.models import PasswordRecovery
 from app.modules.emails.services import EmailService
 from app.modules.emails.models import EmailMessage
@@ -86,7 +86,7 @@ class PasswordRecoveryUseCase:
 
                 user = await uow.users.get_active_by_id(recovery.user_id)
                 if user is None:
-                    raise UnauthorizedError("Token inválido")
+                    raise NotFoundError("Token inválido")
 
                 user.password_hash = self.hasher.hash(new_password)
                 recovery.used_at = now
@@ -94,7 +94,7 @@ class PasswordRecoveryUseCase:
                 await uow.password_recovery.save(recovery)
                 return
 
-            raise UnauthorizedError("Token de recuperação inválido ou expirado")
+            raise NotFoundError("Token de recuperação inválido ou expirado")
 
     async def verify_token(self, token: str) -> None:
         """Verifica se o token é válido e não expirou."""
@@ -111,4 +111,4 @@ class PasswordRecoveryUseCase:
                     if user:
                         return
 
-            raise UnauthorizedError("Token de recuperação inválido ou expirado")
+            raise NotFoundError("Token de recuperação inválido ou expirado")
