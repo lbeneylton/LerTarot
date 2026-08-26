@@ -7,6 +7,13 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 
+# -- IMPORTAÇÕES DO APP --
+from app.core.config import settings
+from app.db.base import Base
+
+# Importação dos models para não gerar migration vazia
+import app.db.registry 
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
@@ -16,15 +23,6 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-import sys
-from pathlib import Path
-
-# Adicionar a pasta src ao sys.path para importações absolutas funcionarem
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
-
-from app.core.config import settings
-from app.db.base import Base
-import app.db.registry  # noqa: F401 - Loads the models so Base.metadata knows about them
 
 # add your model's MetaData object here
 # for 'autogenerate' support

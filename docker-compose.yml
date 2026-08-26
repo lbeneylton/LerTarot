@@ -25,6 +25,7 @@ services:
       db:
         condition: service_healthy
     environment:
+      RUN_MIGRATIONS: "false"
       ENV: "PROD"
       DATABASE__URL: "postgresql+psycopg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-lertarot}"
       AUTH__SECRET_KEY: "${AUTH__SECRET_KEY:-your_super_secret_key_here}"
