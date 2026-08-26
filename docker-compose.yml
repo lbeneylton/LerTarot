@@ -37,7 +37,9 @@ services:
       PAYMENT__API_KEY: "${PAYMENT__API_KEY:-payment_key}"
       PAYMENT__BASE_URL: "${PAYMENT__BASE_URL:-https://api.payment.com}"
       REDIS_URL: "redis://redis:6379/0"
-      DISCORD_WEBHOOK_URL: "${DISCORD_WEBHOOK_URL:-}"
+      DISCORD_WEBHOOK__URL_ERROR: "${DISCORD_WEBHOOK__URL_ERROR:-}"
+      DISCORD_WEBHOOK__URL_USERS: "${DISCORD_WEBHOOK__URL_USERS:-}"
+      DISCORD_WEBHOOK__URL_EMAILS: "${DISCORD_WEBHOOK__URL_EMAILS:-}"
     ports:
       - "8000:8000"
     restart: unless-stopped
@@ -65,7 +67,9 @@ services:
       PAYMENT__API_KEY: "${PAYMENT__API_KEY:-payment_key}"
       PAYMENT__BASE_URL: "${PAYMENT__BASE_URL:-https://api.payment.com}"
       REDIS_URL: "redis://redis:6379/0"
-      DISCORD_WEBHOOK_URL: "${DISCORD_WEBHOOK_URL:-}"
+      DISCORD_WEBHOOK__URL_ERROR: "${DISCORD_WEBHOOK__URL_ERROR:-}"
+      DISCORD_WEBHOOK__URL_USERS: "${DISCORD_WEBHOOK__URL_USERS:-}"
+      DISCORD_WEBHOOK__URL_EMAILS: "${DISCORD_WEBHOOK__URL_EMAILS:-}"
     # Sobrescreve o comando padrão (uvicorn) para executar o worker CLI
     command: [ "python", "-m", "app.modules.emails.cli" ]
     restart: unless-stopped

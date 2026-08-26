@@ -13,7 +13,7 @@ class DiscordWebhookHandler(logging.Handler):
     """
 
     def emit(self, record: logging.LogRecord) -> None:
-        if not settings.discord_webhook_url:
+        if not settings.discord_webhook.url_error:
             return
 
         # Formata a mensagem do log
@@ -41,12 +41,12 @@ class DiscordWebhookHandler(logging.Handler):
             loop.create_task(self._send_async(payload))
         except RuntimeError:
             # Se não houver event loop (ex: script síncrono), roda sincronicamente
-            httpx.post(settings.discord_webhook_url, json=payload, timeout=5.0)
+            httpx.post(settings.discord_webhook.url_error, json=payload, timeout=5.0)
 
     async def _send_async(self, payload: dict[str, Any]) -> None:
         try:
             async with httpx.AsyncClient() as client:
-                await client.post(settings.discord_webhook_url, json=payload, timeout=5.0)
+                await client.post(settings.discord_webhook.url_error, json=payload, timeout=5.0)
         except Exception as e:
             # Não podemos logar isso novamente com o mesmo logger para evitar loops infinitos
             print(f"Falha ao enviar webhook do Discord: {e}")

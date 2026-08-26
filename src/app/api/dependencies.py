@@ -43,12 +43,19 @@ def get_email_verificator(
     return VerifyEmailService(uow, hasher)
 
 
+from app.core.contracts.notification import NotificationContract
+from app.infrastructure.notifications.discord_notifier import DiscordNotifier
+
+def get_notifier() -> NotificationContract:
+    return DiscordNotifier()
+
 def get_create_service(
     uow: SqlAlchemyUnitOfWork = Depends(get_uow),
     hasher: Argon2Hasher = Depends(get_hasher),
     email_verificator: VerifyEmailService = Depends(get_email_verificator),
+    notifier: NotificationContract = Depends(get_notifier),
 ) -> CreateUserService:
-    return CreateUserService(uow, hasher, email_verificator)
+    return CreateUserService(uow, hasher, email_verificator, notifier)
 
 
 def get_auth_service(

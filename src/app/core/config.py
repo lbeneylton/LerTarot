@@ -43,6 +43,13 @@ class PaymentSettings(BaseModel):
 
 
 
+class DiscordWebhookSettings(BaseModel):
+    """Configurações dos Webhooks do Discord."""
+    url_error: str = ""
+    url_users: str = ""
+    url_emails: str = ""
+
+
 class Settings(BaseSettings):
     """Configurações gerais da aplicação."""
 
@@ -51,7 +58,8 @@ class Settings(BaseSettings):
     
     internal_api_key: str 
     redis_url: str = "redis://localhost:6379/0"
-    discord_webhook_url: str = ""
+    
+    discord_webhook: DiscordWebhookSettings = DiscordWebhookSettings()
 
     database: DatabaseSettings 
     auth: AuthSettings 

@@ -17,16 +17,20 @@ class CreatedUser:
     username: str | None
 
 
+from app.core.contracts.notification import NotificationContract
+
 class CreateUserService:
     def __init__(
         self,
         uow: UnitOfWorkContract, 
         hasher: PasswordHasherContract, 
-        email_verificator: VerifyEmailService
+        email_verificator: VerifyEmailService,
+        notifier: NotificationContract,
     ) -> None:
         self.uow = uow
         self.hasher = hasher
         self.email_verificator = email_verificator
+        self.notifier = notifier
 
     async def create_user(self, data: UserCreate) -> CreatedUser:
         """Cria um novo usuário e dispara e-mails de boas-vindas e verificação."""
@@ -92,6 +96,10 @@ class CreateUserService:
                 await uow.emails.save(message)
 
             await self.email_verificator.send_code(new_user)
+            
+            # Notifica auditoria de negócio (em background, sem prender a transação)
+            await self.notifier.notify_new_user(user_name=new_user.username or "Sem nome", user_email=new_user.email)
+            
             return result
 
 

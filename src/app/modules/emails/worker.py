@@ -10,6 +10,8 @@ from app.modules.emails.senders import get_sender
 logger = logging.getLogger("emails.worker")
 
 
+from app.infrastructure.notifications.discord_notifier import DiscordNotifier
+
 class EmailWorker:
     def __init__(
         self,
@@ -21,6 +23,7 @@ class EmailWorker:
         self.max_attempts = max_attempts
         self.processing_timeout_seconds = processing_timeout_seconds
         self.email_sender = get_sender()
+        self.notifier = DiscordNotifier()
         self.running = False
 
     async def start(self) -> None:
@@ -130,6 +133,10 @@ class EmailWorker:
                     db_msg.next_retry_at = None
                     db_msg.error = None
                     logger.info(f"E-mail {db_msg.message_id} enviado com sucesso.")
+                    
+                    # Dispara alerta de sucesso de envio via webhook em background
+                    await self.notifier.notify_email_sent(to_email=db_msg.to, subject=db_msg.subject)
+
                 except Exception as send_err:
                     db_msg.attempts += 1
                     error_msg = f"{type(send_err).__name__}: {str(send_err)}"
