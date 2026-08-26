@@ -94,13 +94,13 @@ async def refresh(
 
 @auth_router.post(
     "/logout",
-    status_code=status.HTTP_202_ACCEPTED,
+    status_code=status.HTTP_200_OK,
     response_model=AuthResponse,
     summary="Revogação dos tokens"
 )
 async def logout(
     response: Response,
-    refresh_token: str | None = Cookie(default=None),
+    refresh_token: str | None = Cookie(alias="refresh_token", default=None),
     service: AuthenticationService = Depends(get_auth_service),
 ):
     await service.logout(refresh_token)

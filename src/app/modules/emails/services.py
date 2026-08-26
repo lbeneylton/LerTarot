@@ -30,8 +30,7 @@ class EmailService:
                 idempotency_key=idempotency_key,
                 to=data.to,
                 subject=data.subject,
-                template=data.template,
-                body=template_or_body,
+                body=data.template or data.body,
                 variables=data.variables or {},
                 status=MessageStatus.PENDING,
             )

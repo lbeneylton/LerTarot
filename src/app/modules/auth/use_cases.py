@@ -84,9 +84,8 @@ class CreateUserService:
                 message = EmailMessage(
                     idempotency_key=key,
                     to=new_user.email,
-                    subject="Seja bem vindo ao Ler Tarot",
-                    template=welcome_prefix,
-                    body=welcome_body,
+                    subject="Seja bem-vindo ao Ler Tarot!",
+                    body=welcome_prefix,
                     variables={
                         "user_name": new_user.username or "Usuário",
                         "year": datetime.now(timezone.utc).year,
@@ -167,16 +166,16 @@ class AuthenticationService:
             return self._generate_tokens(user)
 
     async def logout(self, refresh_token: str | None) -> str:
-        if not refresh_token:
-            raise UnauthorizedError("Refresh token ausente")
-
-        payload = self.provider_token.decode_refresh_token(refresh_token)
-        user_id = int(payload["sub"])
-
-        async with self.uow as uow:
-            user = await uow.users.get_active_by_id(user_id)
-            if not user:
-                raise UnauthorizedError("Usuário não encontrado")
-
-            await self._revoke_all_tokens(uow, user)
-            return "Usuário deslogado"
+        if refresh_token:
+            try:
+                payload = self.provider_token.decode_refresh_token(refresh_token)
+                user_id_str = payload.get("sub")
+                if user_id_str:
+                    user_id = int(user_id_str)
+                    async with self.uow as uow:
+                        user = await uow.users.get_active_by_id(user_id)
+                        if user:
+                            await self._revoke_all_tokens(uow, user)
+            except Exception:
+                pass
+        return "Usuário deslogado com sucesso"

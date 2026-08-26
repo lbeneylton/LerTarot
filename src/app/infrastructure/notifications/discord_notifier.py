@@ -11,9 +11,13 @@ logger = logging.getLogger(__name__)
 class DiscordNotifier(NotificationContract):
     """Implementação concreta de NotificationContract enviando para Webhooks do Discord."""
 
-    def __init__(self) -> None:
-        self.webhook_users = settings.discord_webhook.url_users
-        self.webhook_emails = settings.discord_webhook.url_emails
+    @property
+    def webhook_users(self) -> str:
+        return settings.discord_webhook.url_users
+
+    @property
+    def webhook_emails(self) -> str:
+        return settings.discord_webhook.url_emails
 
     async def notify_new_user(self, user_name: str, user_email: str) -> None:
         if not self.webhook_users:
@@ -55,6 +59,10 @@ class DiscordNotifier(NotificationContract):
     async def _fire_and_forget(self, webhook_url: str, payload: dict[str, Any]) -> None:
         try:
             async with httpx.AsyncClient() as client:
-                await client.post(webhook_url, json=payload, timeout=5.0)
+                res = await client.post(webhook_url, json=payload, timeout=5.0)
+                if res.status_code >= 400:
+                    logger.error(f"Discord Webhook retornou HTTP {res.status_code}: {res.text}")
+                else:
+                    logger.info(f"Notificação enviada ao Discord com sucesso! (HTTP {res.status_code})")
         except Exception as e:
             logger.error(f"Falha ao enviar notificação de negócio para o Discord: {e}")

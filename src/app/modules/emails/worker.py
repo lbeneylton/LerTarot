@@ -22,9 +22,12 @@ class EmailWorker:
         self.interval_seconds = interval_seconds
         self.max_attempts = max_attempts
         self.processing_timeout_seconds = processing_timeout_seconds
-        self.email_sender = get_sender()
         self.notifier = DiscordNotifier()
         self.running = False
+
+    @property
+    def email_sender(self):
+        return get_sender()
 
     async def start(self) -> None:
         self.running = True
@@ -110,7 +113,8 @@ class EmailWorker:
                     return False
 
                 try:
-                    template_name = db_msg.template or db_msg.body or "verify_email"
+                    template_name = db_msg.body or "verify_email"
+
                     variables = dict(db_msg.variables or {})
 
                     try:
@@ -120,7 +124,8 @@ class EmailWorker:
                             template_name=template_name,
                             variables=variables,
                         )
-                    except Exception:
+                    except Exception as t_err:
+                        logger.exception(f"FALHA NO TEMPLATE HTML '{template_name}'. Enviando texto puro fallback. Erro: {t_err}")
                         self.email_sender.send_text(
                             to=db_msg.to,
                             subject=db_msg.subject,
