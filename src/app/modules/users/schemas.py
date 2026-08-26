@@ -9,6 +9,17 @@ class UserCreate(BaseModel):
     role: UserRole = UserRole.CLIENTE
 
 
+class UserResponse(BaseModel):
+    user_id: int
+    username: str
+    email: str
+    role: str
+    email_verified: bool
+
+    class Config:
+        from_attributes = True
+
+
 class LoginRequest(BaseModel):
     email_or_username: str
     password: str = Field(..., min_length=8)
