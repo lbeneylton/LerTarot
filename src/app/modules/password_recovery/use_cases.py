@@ -44,6 +44,17 @@ class PasswordRecoveryUseCase:
 
             idempotency_key = f"recovery_password:{user.user_id}:{token_hash}"
             
+            raw_url = str(settings.url_recovery_password).strip()
+            if raw_url.startswith("https://"):
+                clean_url = raw_url[8:]
+            elif raw_url.startswith("http://"):
+                clean_url = raw_url[7:]
+            else:
+                clean_url = raw_url
+
+            scheme = "http" if "localhost" in clean_url or "127.0.0.1" in clean_url else "https"
+            formatted_url = f"{scheme}://{clean_url}"
+
             email_message = EmailMessage(
                 idempotency_key=idempotency_key,
                 to=user.email,
@@ -52,7 +63,7 @@ class PasswordRecoveryUseCase:
                 body="password_reset",
                 variables={
                     "user_name": user.username or "Usuário",
-                    "url_reset": str(settings.url_recovery_password),
+                    "url_reset": formatted_url,
                     "token": token,
                     "year": datetime.now(timezone.utc).year
                 }

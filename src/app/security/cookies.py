@@ -8,7 +8,7 @@ settings = get_settings()
 
 
 ACCESS_PATH = "/"
-REFRESH_PATH = "/auth/refresh"
+REFRESH_PATH = "/"
 
 
 class CookieManager:

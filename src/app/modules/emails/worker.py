@@ -110,7 +110,7 @@ class EmailWorker:
                     return False
 
                 try:
-                    template_name = db_msg.body or "verify_email"
+                    template_name = db_msg.template or db_msg.body or "verify_email"
                     variables = dict(db_msg.variables or {})
 
                     try:

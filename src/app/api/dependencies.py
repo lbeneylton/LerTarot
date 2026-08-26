@@ -1,5 +1,4 @@
-from fastapi import Depends, Header, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Depends, Header, HTTPException, status, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -14,8 +13,6 @@ from app.modules.auth.use_cases import CreateUserService, AuthenticationService
 from app.modules.password_recovery.use_cases import PasswordRecoveryUseCase
 from app.modules.email_verification.services import VerifyEmailService
 from app.modules.emails.services import EmailService
-
-security = HTTPBearer(auto_error=False)
 
 
 # =====================================================================
@@ -78,15 +75,16 @@ def get_password_recovery_use_case(
 # Authentication & Authorization Guards
 # =====================================================================
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    request: Request,
     uow: SqlAlchemyUnitOfWork = Depends(get_uow),
     token_service: JwtTokenService = Depends(get_token_provider),
 ) -> User:
-    """Extrai e valida o token JWT do header Authorization e retorna o usuário."""
-    if not credentials:
+    """Extrai e valida o token JWT exclusivamente do Cookie HTTP-only da requisição."""
+    access_token = request.cookies.get("access_token")
+    if not access_token:
         raise UnauthorizedError("Token de acesso ausente ou inválido")
 
-    payload = token_service.decode_access_token(credentials.credentials)
+    payload = token_service.decode_access_token(access_token)
     user_id_str = payload.get("sub")
     if not user_id_str:
         raise UnauthorizedError("Token de acesso ausente ou inválido")

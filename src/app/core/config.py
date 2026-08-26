@@ -2,7 +2,7 @@
 
 from functools import lru_cache
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, AliasChoices
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class CredentialsSettings(BaseModel):
@@ -31,7 +31,7 @@ class AuthSettings(BaseModel):
     secret_key: str
     algorithm: str = "HS256"
 
-    access_expire_minutes: int = 5
+    access_expire_minutes: int = 60
     refresh_expire_days: int = 30
 
 
@@ -45,9 +45,18 @@ class PaymentSettings(BaseModel):
 
 class DiscordWebhookSettings(BaseModel):
     """Configurações dos Webhooks do Discord."""
-    url_error: str = ""
-    url_users: str = ""
-    url_emails: str = ""
+    url_error: str = Field(
+        default="",
+        validation_alias=AliasChoices("url_error", "DISCORD_WEBHOOK_URL", "DISCORD_WEBHOOK__URL_ERROR")
+    )
+    url_users: str = Field(
+        default="",
+        validation_alias=AliasChoices("url_users", "DISCORD_WEBHOOK_USERS", "DISCORD_WEBHOOK__URL_USERS")
+    )
+    url_emails: str = Field(
+        default="",
+        validation_alias=AliasChoices("url_emails", "DISCORD_WEBHOOK_EMAILS", "DISCORD_WEBHOOK__URL_EMAILS")
+    )
 
 
 class Settings(BaseSettings):
